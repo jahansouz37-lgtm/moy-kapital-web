@@ -1,0 +1,21 @@
+import {empty,uid,stamp,operation,commitEvent,validate,today} from './engine.js';
+export function demo(){let s=empty();s.started=true;s.demo=true;const now=today(),month=now.slice(0,7),d=n=>month+'-'+String(Math.min(n,Number(now.slice(-2)))).padStart(2,'0');
+ const account=(name,type,currency,opening)=>{const a={id:uid(),name,type,currency,opening,date:d(1),comment:'',archived:false};s.accounts.push(a);return a.id};
+ const bank=account('Основной счёт','Банковский счёт','RUB','18500000'),cash=account('Наличные','Наличные','RUB','1200000'),usd=account('Валютный резерв','Накопления','USD','100000');
+ s.rates.push({id:uid(),currency:'USD',date:d(1),...{n:'95',d:'1'},createdAt:stamp()},{id:uid(),currency:'EUR',date:d(1),n:'103',d:'1',createdAt:stamp()});
+ const asset={id:uid(),name:'Автомобиль',type:'Транспорт',currency:'RUB',opening:'84000000',cost:'90000000',share:'100',date:d(1),comment:'',archived:false};s.assets.push(asset);
+ const debt={id:uid(),name:'Личный заём',counterparty:'Алексей',direction:'owed',currency:'RUB',opening:'8000000',date:d(1),due:month+'-28',comment:'',archived:false};s.debts.push(debt);
+ const lent={id:uid(),name:'Заём знакомому',counterparty:'Мария',direction:'lent',currency:'RUB',opening:'2500000',date:d(1),due:month+'-25',comment:'',archived:false};s.debts.push(lent);
+ const add=v=>{s=commitEvent(s,operation(s,v))};
+ add({kind:'income',date:d(3),amount:'14500000',account:bank,category:'Зарплата',comment:'Зарплата за месяц'});
+ add({kind:'expense',date:d(5),amount:'4250000',account:bank,category:'Дом',comment:'Аренда квартиры'});
+ add({kind:'expense',date:d(7),amount:'864000',account:bank,category:'Продукты',comment:'Продукты на неделю'});
+ add({kind:'transfer',date:d(8),amount:'1000000',account:bank,target:cash,comment:'Пополнение наличных'});
+ add({kind:'exchange',date:d(10),amount:'950000',received:'10000',account:bank,target:usd,fee:'10000',feeAccount:bank,comment:'Пополнение резерва'});
+ add({kind:'debtPayment',date:d(12),amount:'500000',interest:'70000',debt:debt.id,account:bank,comment:'Частичное погашение'});
+ add({kind:'debtPayment',date:d(13),amount:'500000',interest:'0',debt:lent.id,account:bank,comment:'Частичный возврат займа'});
+ add({kind:'expense',date:d(14),amount:'285000',account:bank,category:'Транспорт',comment:'Топливо'});
+ add({kind:'revalue',date:d(15),amount:'86000000',asset:asset.id,comment:'Ручная оценка автомобиля'});
+ add({kind:'expense',date:month+'-28',amount:'120000',account:bank,category:'Дом',comment:'Интернет и связь',planned:true});
+ return validate(s);
+}
