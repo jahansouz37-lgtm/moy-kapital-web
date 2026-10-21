@@ -43,7 +43,9 @@ export function operation(s,v,checking=false){
  const asset=v.asset?s.assets.find(a=>a.id===v.asset):null, debt=v.debt?s.debts.find(a=>a.id===v.debt):null;
  if(!dateOK(date))fail('Проверьте дату');
  if(!['debtPayment','writeoff','revalue'].includes(v.kind)&&amount<=0n)fail('Введите сумму больше нуля');
- if(v.kind==='income'||v.kind==='expense'){money(account,v.kind==='income'?amount:-amount);profit(v.kind,amount,account.currency,v.category);}
+ if(v.kind==='personTransfer'){if(!v.recipient?.trim())fail('Укажите получателя');money(account,-amount);profit('expense',amount,account.currency,v.category||'Переводы людям');}
+ else if(v.kind==='debtReduce'){if(!debt)fail('Выберите долг');if(debt.archived&&!checking)fail('Долг в архиве');add('debt',debt.id,-amount);if(v.trackMoney){if(account?.currency!==debt.currency)fail('Счёт должен быть в валюте долга');money(account,(debt.direction==='owed'?-1n:1n)*amount);}}
+ else if(v.kind==='income'||v.kind==='expense'){money(account,v.kind==='income'?amount:-amount);profit(v.kind,amount,account.currency,v.category);}
  else if(v.kind==='transfer'||v.kind==='exchange'){
  const target=s.accounts.find(a=>a.id===v.target);if(!account||!target||account.id===target.id)fail('Выберите два разных счёта');
  if(v.kind==='transfer'&&account.currency!==target.currency)fail('Для разных валют используйте обмен');
@@ -77,7 +79,7 @@ export function validate(s){
  for(const [bucket,items] of [['money',s.accounts],['asset',s.assets],['debt',s.debts]])for(const item of items){if(typeof item.name!=='string'||!item.name.trim()||item.name.length>200||!codes.has(item.currency)||!dateOK(item.date)||!int(item.opening))fail('Некорректные исходные данные');if(bucket!=='money'&&BigInt(item.opening)<0n)fail('Отрицательная исходная оценка или долг');if(bucket==='debt'&&!['owed','lent'].includes(item.direction))fail('Некорректное направление долга');if(item.due&&!dateOK(item.due))fail('Некорректный срок');if(bucket==='asset'&&(!/^\d+(?:\.\d{1,4})?$/.test(item.share)||Number(item.share)<=0||Number(item.share)>100))fail('Доля должна быть от 0 до 100%');}
  for(const r of s.rates)if(!codes.has(r.currency)||r.currency==='RUB'||!dateOK(r.date)||!positive(r.n)||!positive(r.d)||typeof r.createdAt!=='string')fail('Некорректный курс');
  const balances={money:{},asset:{},debt:{}},active={};for(const [b,items] of [['money',s.accounts],['asset',s.assets],['debt',s.debts]])for(const x of items){balances[b][x.id]=BigInt(x.opening);if(b==='asset')active[x.id]=BigInt(x.opening)>0n;}
- const refunds={};const kinds=['income','expense','transfer','exchange','adjust','debtIncrease','debtPayment','writeoff','assetBuy','assetSell','revalue','refund'];
+ const refunds={};const kinds=['personTransfer','debtReduce','income','expense','transfer','exchange','adjust','debtIncrease','debtPayment','writeoff','assetBuy','assetSell','revalue','refund'];
  for(const e of sorted(s)){
  if(!kinds.includes(e.kind)||!dateOK(e.date)||!Number.isSafeInteger(e.order)||typeof e.createdAt!=='string'||isNaN(Date.parse(e.createdAt))||typeof e.updatedAt!=='string'||isNaN(Date.parse(e.updatedAt))||typeof e.planned!=='boolean'||!Array.isArray(e.postings)||!e.postings.length||!Array.isArray(e.pnl))fail('Некорректное событие');
  if(!e.planned&&e.date>today())fail('Будущая операция должна быть запланированной');
