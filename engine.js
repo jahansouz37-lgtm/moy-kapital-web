@@ -1,7 +1,9 @@
+import * as P from './portfolio.js';
 export const uid=()=>globalThis.crypto.randomUUID();
 export const today=()=>new Date().toLocaleDateString('sv-SE');
 export const stamp=()=>new Date().toISOString();
-export const empty=()=>({version:1,revision:0,started:false,demo:false,settings:{base:'RUB'},currencies:[{code:'RUB',precision:2},{code:'USD',precision:2},{code:'EUR',precision:2}],accounts:[],assets:[],debts:[],events:[],rates:[],categories:['Зарплата','Продукты','Транспорт','Дом','Здоровье','Отдых','Подарки','Проценты','Комиссии','Другое'],audit:[]});
+export const empty=()=>({version:2,portfolios:[],instruments:[],revision:0,started:false,demo:false,settings:{base:'RUB'},currencies:[{code:'RUB',precision:2},{code:'USD',precision:2},{code:'EUR',precision:2},{code:'USDT',precision:6}],accounts:[],assets:[],debts:[],events:[],rates:[],categories:['Зарплата','Продукты','Транспорт','Дом','Здоровье','Отдых','Подарки','Проценты','Комиссии','Другое'],audit:[]});
+export function migrate(s){if(!s||s.version!==1)return s;const next=structuredClone(s);next.version=2;next.portfolios=[];next.instruments=[];if(!next.currencies.some(c=>c.code==='USDT'))next.currencies.push({code:'USDT',precision:6});return next;}
 const fail=m=>{throw Error(m)};
 export function dateOK(s){return typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!isNaN(Date.parse(s))&&new Date(s+'T12:00:00Z').toISOString().slice(0,10)===s;}
 export function precision(s,c){return s.currencies.find(x=>x.code===c)?.precision??fail('Неизвестная валюта '+c);}
@@ -25,7 +27,7 @@ export function snapshot(s,date=today()){
 export function capital(s,date=today()){
  const balances=snapshot(s,date), missing=new Set(),parts={money:0n,assets:0n,receivables:0n,liabilities:0n};
  for(const [bucket,items] of [['money',s.accounts],['assets',s.assets],['debts',s.debts]])for(const item of items){const value=balances[bucket][item.id];if(value===undefined||value===0n)continue;const base=convert(s,value,item.currency,date);if(base===null){missing.add(item.currency);continue;}parts[bucket==='debts'?(item.direction==='owed'?'liabilities':'receivables'):bucket]+=base;}
- return {...parts,total:parts.money+parts.assets+parts.receivables-parts.liabilities,missing:[...missing],balances};
+ const investment=P.contribution(s,date);for(const c of investment.missing)missing.add(c);return {...parts,investments:investment.total,total:parts.money+parts.assets+parts.receivables-parts.liabilities+investment.total,missing:[...missing],balances};
 }
 export function period(s,from,to){let income=0n,expense=0n;let flowBase=0n,exchangeEffect=0n;const flowMissing=new Set(),missing=new Set(),categories={},flows={},kinds={};for(const e of sorted(s).filter(e=>!e.planned&&e.date>=from&&e.date<=to)){
  for(const l of e.pnl||[]){const v=convert(s,l.amount,l.currency,e.date,l.rate);if(v===null){missing.add(l.currency);continue;}if(l.kind==='income')income+=v;else{expense+=v;categories[l.category]=(categories[l.category]||0n)+v;}}
@@ -34,6 +36,7 @@ export function period(s,from,to){let income=0n,expense=0n;let flowBase=0n,excha
  }return {income,expense,result:income-expense,missing:[...missing],categories,flows,kinds,flowBase,exchangeEffect,flowMissing:[...flowMissing]};}
 function ref(s,b,id){return (b==='money'?s.accounts:b==='asset'?s.assets:s.debts).find(x=>x.id===id)||fail('Не найдена связанная запись');}
 export function operation(s,v,checking=false){
+ if(v.kind?.startsWith('inv:'))return P.operation(s,v,checking);
  const date=v.date||today(),postings=[],pnl=[];const add=(bucket,id,amount)=>{if(BigInt(amount)!==0n)postings.push({bucket,id,amount:amount.toString()});};
  const amount=BigInt(v.amount||'0'),fee=BigInt(v.fee||'0'),interest=BigInt(v.interest||'0');
  if(amount<0n||fee<0n||interest<0n)fail('Суммы должны быть положительными');
@@ -70,18 +73,19 @@ export function operation(s,v,checking=false){
  return makeEvent(s,{...v,date,postings,pnl,planned:date>today()||!!v.planned});
 }
 export function validate(s){
- if(!s||s.version!==1||!Number.isSafeInteger(s.revision)||s.revision<0||typeof s.started!=='boolean'||typeof s.demo!=='boolean'||!s.settings||s.settings.base!=='RUB')fail('Неподдерживаемый формат резервной копии');
+ s=migrate(s);
+ if(!s||s.version!==2||!Number.isSafeInteger(s.revision)||s.revision<0||typeof s.started!=='boolean'||typeof s.demo!=='boolean'||!s.settings||s.settings.base!=='RUB')fail('Неподдерживаемый формат резервной копии');
  for(const key of ['currencies','accounts','assets','debts','events','rates','categories','audit'])if(!Array.isArray(s[key])||s[key].length>100000)fail('Некорректный список '+key);
  if(!s.currencies.some(c=>c.code==='RUB'&&c.precision===2))fail('Не найдена базовая валюта RUB');
  const codes=new Set();for(const c of s.currencies){if(!/^[A-Z]{3,8}$/.test(c.code)||codes.has(c.code)||!Number.isInteger(c.precision)||c.precision<0||c.precision>6)fail('Некорректная валюта');codes.add(c.code);}
  if(s.categories.some(x=>typeof x!=='string'||!x.trim()||x.length>120))fail('Некорректная категория');
- const ids=new Set();for(const x of [...s.accounts,...s.assets,...s.debts,...s.events,...s.rates]){if(typeof x.id!=='string'||!x.id||ids.has(x.id))fail('Повторяющийся или пустой идентификатор');ids.add(x.id);}
+ const ids=new Set();for(const x of [...s.accounts,...s.assets,...s.debts,...s.events,...s.rates]){if(typeof x.id!=='string'||!/^[-A-Za-z0-9_.:]{1,120}$/.test(x.id)||ids.has(x.id))fail('Повторяющийся или пустой идентификатор');ids.add(x.id);}
  for(const [bucket,items] of [['money',s.accounts],['asset',s.assets],['debt',s.debts]])for(const item of items){if(typeof item.name!=='string'||!item.name.trim()||item.name.length>200||!codes.has(item.currency)||!dateOK(item.date)||!int(item.opening))fail('Некорректные исходные данные');if(bucket!=='money'&&BigInt(item.opening)<0n)fail('Отрицательная исходная оценка или долг');if(bucket==='debt'&&!['owed','lent'].includes(item.direction))fail('Некорректное направление долга');if(item.due&&!dateOK(item.due))fail('Некорректный срок');if(bucket==='asset'&&(!/^\d+(?:\.\d{1,4})?$/.test(item.share)||Number(item.share)<=0||Number(item.share)>100))fail('Доля должна быть от 0 до 100%');}
  for(const r of s.rates)if(!codes.has(r.currency)||r.currency==='RUB'||!dateOK(r.date)||!positive(r.n)||!positive(r.d)||typeof r.createdAt!=='string')fail('Некорректный курс');
  const balances={money:{},asset:{},debt:{}},active={};for(const [b,items] of [['money',s.accounts],['asset',s.assets],['debt',s.debts]])for(const x of items){balances[b][x.id]=BigInt(x.opening);if(b==='asset')active[x.id]=BigInt(x.opening)>0n;}
  const refunds={};const kinds=['personTransfer','debtReduce','income','expense','transfer','exchange','adjust','debtIncrease','debtPayment','writeoff','assetBuy','assetSell','revalue','refund'];
  for(const e of sorted(s)){
- if(!kinds.includes(e.kind)||!dateOK(e.date)||!Number.isSafeInteger(e.order)||typeof e.createdAt!=='string'||isNaN(Date.parse(e.createdAt))||typeof e.updatedAt!=='string'||isNaN(Date.parse(e.updatedAt))||typeof e.planned!=='boolean'||!Array.isArray(e.postings)||!e.postings.length||!Array.isArray(e.pnl))fail('Некорректное событие');
+ if((!kinds.includes(e.kind)&&!P.investmentKinds[e.kind])||!dateOK(e.date)||!Number.isSafeInteger(e.order)||typeof e.createdAt!=='string'||isNaN(Date.parse(e.createdAt))||typeof e.updatedAt!=='string'||isNaN(Date.parse(e.updatedAt))||typeof e.planned!=='boolean'||!Array.isArray(e.postings)||(!e.postings.length&&!P.investmentKinds[e.kind])||!Array.isArray(e.pnl))fail('Некорректное событие');
  if(!e.planned&&e.date>today())fail('Будущая операция должна быть запланированной');
  if(e.postings.length>10||e.pnl.length>4)fail('Слишком много частей операции');
  for(const p of e.postings){if(!['money','asset','debt'].includes(p.bucket)||!int(p.amount))fail('Некорректное движение');const item=ref(s,p.bucket,p.id);if(item.date>e.date)fail('Операция раньше начала учёта связанной записи');}
@@ -98,11 +102,11 @@ export function validate(s){
  for(const p of e.postings){balances[p.bucket][p.id]+=BigInt(p.amount);if(p.bucket!=='money'&&balances[p.bucket][p.id]<0n)fail(p.bucket==='debt'?'Погашение превышает остаток долга на дату платежа':'Отрицательная оценка актива');}
  if(e.kind==='assetBuy')active[e.asset]=true;if(e.kind==='assetSell')active[e.asset]=false;
  }
- return s;
+ P.validate(s);return s;
 }
-export function recalculate(s){const next=structuredClone(s),all=sorted(next);next.events=[];for(const e of all){if(['revalue','assetSell','writeoff'].includes(e.kind)){const generated=operation(next,e,true);next.events.push({...e,postings:generated.postings});}else next.events.push(e);}return next;}
+export function recalculate(s){const next=migrate(structuredClone(s)),all=sorted(next);next.events=[];for(const e of all){if(e.kind.startsWith('inv:')){const g=operation(next,e,true);next.events.push({...e,postings:g.postings,pnl:g.pnl.map((l,j)=>({...l,rate:e.pnl[j]?e.pnl[j].rate:l.rate}))});}else if(['revalue','assetSell','writeoff'].includes(e.kind)){const generated=operation(next,e,true);next.events.push({...e,postings:generated.postings});}else next.events.push(e);}return next;}
 export function commitEvent(s,e){const next=structuredClone(s),i=next.events.findIndex(x=>x.id===e.id);if(i<0)next.events.push(e);else{const old=next.events[i];next.events[i]=e;next.audit.push({id:uid(),at:stamp(),action:'Изменена операция',entity:e.id,before:old,after:e});}return validate(recalculate(next));}
 export function removeEvent(s,id){const next=structuredClone(s),e=next.events.find(x=>x.id===id);next.events=next.events.filter(x=>x.id!==id);next.audit.push({id:uid(),at:stamp(),action:'Удалена операция со всеми частями',entity:id,before:e});return validate(recalculate(next));}
 export function backup(s){return JSON.stringify({...s,exportedAt:stamp()},null,2);}
 export function importData(text){if(new TextEncoder().encode(text).length>10*1024*1024)fail('Файл больше 10 МБ');let s;try{s=JSON.parse(text)}catch{fail('Файл не является корректным JSON')}return validate(s);}
-export function csv(s){const esc=x=>'"'+String(x??'').replace(/^[\s]*[=+@\-\t\r]/,"'$&").replaceAll('"','""')+'"';return '\uFEFF'+[['Дата','Тип','Сумма','Валюта','Категория','Комментарий','Статус'],...sorted(s).map(e=>[e.date,e.kind,decimal(e.amount||'0',precision(s,s.accounts.find(a=>a.id===e.account)?.currency||s.debts.find(d=>d.id===e.debt)?.currency||s.assets.find(a=>a.id===e.asset)?.currency||'RUB')),s.accounts.find(a=>a.id===e.account)?.currency||s.debts.find(d=>d.id===e.debt)?.currency||s.assets.find(a=>a.id===e.asset)?.currency||'RUB',e.category,e.comment,e.planned?'Запланировано':'Проведено'])].map(row=>row.map(esc).join(';')).join('\r\n');}
+export function csv(s){const esc=x=>'"'+String(x??'').replace(/^[\s]*[=+@\-\t\r]/,"'$&").replaceAll('"','""')+'"';const currency=e=>e.currency||s.accounts.find(a=>a.id===e.account)?.currency||s.debts.find(d=>d.id===e.debt)?.currency||s.assets.find(a=>a.id===e.asset)?.currency||'RUB';return '\uFEFF'+[['Дата','Тип','Сумма','Валюта','Категория','Комментарий','Статус','Получатель','Инструмент','Количество','Цена','Комиссия'],...sorted(s).map(e=>[e.date,e.kind,decimal(e.amount||'0',precision(s,currency(e))),currency(e),e.category,e.comment,e.planned?'Запланировано':'Проведено',e.recipient,s.instruments?.find(i=>i.id===e.instrument)?.ticker,e.quantity?decimal(e.quantity,8):'',e.price?decimal(e.price,8):'',decimal(e.fee||'0',precision(s,currency(e)))])].map(row=>row.map(esc).join(';')).join('\r\n');}
