@@ -1,8 +1,8 @@
-import * as P from './portfolio.js';
-import {createPortfolioUI} from './portfolio-ui.js';
-import * as E from './engine.js';
-import * as DB from './storage.js';
-import {demo} from './demo.js';
+import * as P from './portfolio.js?v=studio3';
+import {createPortfolioUI} from './portfolio-ui.js?v=studio3';
+import * as E from './engine.js?v=studio3';
+import * as DB from './storage.js?v=studio3';
+import {demo} from './demo.js?v=studio3';
 let state,view='overview',hidden=sessionStorage.getItem('capital-hidden')==='1',periodName='month',debtTab='owed',filters={},customFrom='',customTo='',stale=false;
 const app=document.querySelector('#app'),modal=document.querySelector('#modal');
 const names={overview:'Обзор',operations:'Операции',accounts:'Счета и активы',portfolio:'Портфель',debts:'Долги',reports:'Отчёты',settings:'Настройки'};

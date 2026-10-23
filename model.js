@@ -1,4 +1,4 @@
-import {dateOK,parseMoney,decimal} from './work/engine.js';
+import {dateOK,parseMoney,decimal} from './work/engine.js?v=studio3';
 export const currencies={RUB:2,USD:2,EUR:2,USDT:6};
 export const blank=()=>({version:1,revision:0,personal:{accounts:[],events:[]},pending:[],settings:{space:'personal',hidden:false,widgets:{personal:['tasks','balances','operations'],work:['income','expense','pending','balances','flow']}}});
 export const uid=()=>crypto.randomUUID();

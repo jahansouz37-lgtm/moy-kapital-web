@@ -1,4 +1,4 @@
-import * as E from './engine.js';
+import * as E from './engine.js?v=studio3';
 export const SCALE=100000000n;
 export const investmentKinds={ 'inv:fund':'Пополнение портфеля','inv:withdraw':'Вывод из портфеля','inv:existing':'Начальная позиция','inv:buy':'Покупка','inv:sell':'Продажа','inv:price':'Ручная оценка','inv:coupon':'Купон','inv:dividend':'Дивиденды / проценты','inv:redeem':'Погашение облигации','inv:open':'Открытие фьючерса','inv:close':'Закрытие фьючерса','inv:levels':'Тейки и стоп','inv:fee':'Комиссия портфеля'};
 export const typeNames={crypto:'Криптовалюта',stock:'Акции',bond:'Облигации',future:'Фьючерсы'};

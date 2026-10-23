@@ -1,12 +1,12 @@
-import * as E from './work/engine.js';
-import * as C from './work/storage.js';
-import {load as loadRhythm,parseBackup as parseRhythm,save as saveRhythm,backup as rhythmBackup} from './personal/storage.js';
+import * as E from './work/engine.js?v=studio3';
+import * as C from './work/storage.js?v=studio3';
+import {load as loadRhythm,parseBackup as parseRhythm,save as saveRhythm,backup as rhythmBackup} from './personal/storage.js?v=studio3';
 import * as S from './store.js';
-import * as T from './settlements.js';
-import * as V from './settlements-ui.js';
+import * as T from './settlements.js?v=studio3';
+import * as V from './settlements-ui.js?v=studio3';
 import {monthGrid,shiftDay} from './personal/domain.js';
 import {weekStart,blockDays} from './personal/planner.js';
-import {currencies,uid,minor,display,validate,personalBalances,personalTotals,workRow,postable,toCapitalInput} from './model.js';
+import {currencies,uid,minor,display,validate,personalBalances,personalTotals,workRow,postable,toCapitalInput} from './model.js?v=studio3';
 
 const root=document.querySelector('#app'),live=document.querySelector('#live');
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

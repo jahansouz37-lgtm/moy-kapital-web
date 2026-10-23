@@ -1,4 +1,4 @@
-import * as E from './work/engine.js';
+import * as E from './work/engine.js?v=studio3';
 
 export const kinds={receipt:'Получил',payout:'Передал человеку',exchange:'Обменял',transfer:'Между своими счетами'};
 const fail=message=>{throw Error(message);};

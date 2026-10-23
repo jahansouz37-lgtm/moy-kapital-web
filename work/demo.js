@@ -1,4 +1,4 @@
-import {empty,uid,stamp,operation,commitEvent,validate,today} from './engine.js';
+import {empty,uid,stamp,operation,commitEvent,validate,today} from './engine.js?v=studio3';
 export function demo(){let s=empty();s.started=true;s.demo=true;const now=today(),month=now.slice(0,7),d=n=>month+'-'+String(Math.min(n,Number(now.slice(-2)))).padStart(2,'0');
  const account=(name,type,currency,opening)=>{const a={id:uid(),name,type,currency,opening,date:d(1),comment:'',archived:false};s.accounts.push(a);return a.id};
  const bank=account('Основной счёт','Банковский счёт','RUB','18500000'),cash=account('Наличные','Наличные','RUB','1200000'),usd=account('Валютный резерв','Накопления','USD','100000');
