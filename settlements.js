@@ -1,6 +1,6 @@
-import * as E from './work/engine.js?v=studio3';
+import * as E from './work/engine.js?v=studio4';
 
-export const kinds={receipt:'Получил',payout:'Передал человеку',exchange:'Обменял',transfer:'Между своими счетами'};
+export const kinds={receipt:'Забрал у человека',exchange:'Обменял у человека',payout:'Отдал или перевёл',keep:'Оставил себе',transfer:'Между своими счетами'};
 const fail=message=>{throw Error(message);};
 const trim=(value,max)=>String(value??'').trim().slice(0,max);
 const money=(value,currency,state)=>{
@@ -40,13 +40,14 @@ export function makeStep(form,state,old=null){
   if(kind==='exchange'&&![currency,receivedCurrency].includes(feeCurrency))fail('Комиссия должна быть в одной из валют обмена');
   const fee=E.parseMoney(form.fee||'0',E.precision(state,feeCurrency));
   if(BigInt(fee)<0n)fail('Комиссия не может быть отрицательной');
+  if(kind==='keep'&&BigInt(fee)>0n)fail('Для «Оставил себе» комиссия не нужна: запишите её отдельным шагом');
   const agreedRate=trim(form.agreedRate,40);
   if(agreedRate)E.ratio(agreedRate);
-  const funding=form.funding==='own'?'own':'held';
+  const funding=kind==='keep'?'held':form.funding==='own'?'own':'held';
   return {
     id:old?.id||E.uid(),kind,funding,date:form.date,amount,currency,received,receivedCurrency,
     fee,feeCurrency,agreedRate,account:String(form.account||''),targetAccount:String(form.targetAccount||''),
-    counterparty:trim(form.counterparty,240),purpose:trim(form.purpose,240),
+    counterparty:trim(form.counterparty,240),wallet:trim(form.wallet,240),purpose:trim(form.purpose,240),
     category:trim(form.category,120),comment:trim(form.comment,2000),
     createdAt:old?.createdAt||E.stamp()
   };
@@ -59,7 +60,7 @@ export function balances(settlement){
     if(step.funding==='own')continue;
     const amount=BigInt(step.amount),fee=BigInt(step.fee||'0');
     if(step.kind==='receipt')add(step.currency,amount);
-    if(step.kind==='payout'||step.kind==='exchange')add(step.currency,-amount);
+    if(step.kind==='payout'||step.kind==='exchange'||step.kind==='keep')add(step.currency,-amount);
     if(step.kind==='exchange')add(step.receivedCurrency,BigInt(step.received));
     if(fee)add(step.feeCurrency||step.currency,-fee);
   }
@@ -118,7 +119,7 @@ export function rebuild(input){
       if(!isPostable(step,state))continue;
       if(step.funding==='held'){
         const amount=BigInt(step.amount),fee=BigInt(step.fee||'0'),feeCurrency=step.feeCurrency||step.currency;
-        const sourceNeed=(step.kind==='payout'||step.kind==='exchange'?amount:0n)+(feeCurrency===step.currency?fee:0n);
+        const sourceNeed=(step.kind==='payout'||step.kind==='exchange'||step.kind==='keep'?amount:0n)+(feeCurrency===step.currency?fee:0n);
         const targetNeed=step.kind==='exchange'&&feeCurrency===step.receivedCurrency?fee:0n;
         if(available(step.currency)+(step.kind==='receipt'?amount:0n)<sourceNeed||targetNeed>BigInt(step.received||'0'))continue;
       }
@@ -140,12 +141,12 @@ export function rebuild(input){
         heldSource:debtId(settlement.id,step.currency),
         heldTarget:step.kind==='exchange'?debtId(settlement.id,step.receivedCurrency):'',
         heldFee:debtId(settlement.id,step.feeCurrency||step.currency),
-        counterparty:step.counterparty,recipient:step.counterparty,purpose:step.purpose,comment:step.comment,
+        counterparty:step.counterparty,recipient:step.counterparty,wallet:step.wallet,purpose:step.purpose,category:step.category,comment:step.comment,
         createdAt:step.createdAt
       };
       state.events.push(E.operation(state,inputEvent));
       if(step.kind==='receipt')addBooked(step.currency,BigInt(step.amount));
-      if(step.kind==='payout'||step.kind==='exchange')addBooked(step.currency,-BigInt(step.amount));
+      if(step.kind==='payout'||step.kind==='exchange'||step.kind==='keep')addBooked(step.currency,-BigInt(step.amount));
       if(step.kind==='exchange')addBooked(step.receivedCurrency,BigInt(step.received));
       if(BigInt(step.fee||'0')>0n)addBooked(step.feeCurrency||step.currency,-BigInt(step.fee));
     }
