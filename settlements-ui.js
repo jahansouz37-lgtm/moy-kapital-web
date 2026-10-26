@@ -1,5 +1,5 @@
-import * as E from './work/engine.js?v=studio4';
-import * as T from './settlements.js?v=studio4';
+import * as E from './work/engine.js?v=studio5';
+import * as T from './settlements.js?v=studio5';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateLabel=value=>new Date(value+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'});

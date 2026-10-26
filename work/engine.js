@@ -1,4 +1,4 @@
-import * as P from './portfolio.js?v=studio4';
+import * as P from './portfolio.js?v=studio5';
 export const uid=()=>globalThis.crypto.randomUUID();
 export const today=()=>new Date().toLocaleDateString('sv-SE');
 export const stamp=()=>new Date().toISOString();

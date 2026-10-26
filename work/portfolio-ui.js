@@ -1,5 +1,5 @@
-import * as E from './engine.js?v=studio4';
-import * as P from './portfolio.js?v=studio4';
+import * as E from './engine.js?v=studio5';
+import * as P from './portfolio.js?v=studio5';
 export function createPortfolioUI(ctx){
  const {esc,amount,field,input,select,show,formWrap,bindForm,persist,confirmation}=ctx;const state=()=>ctx.state();let selected='',tab='positions',query='',filterType='',filterStatus='',from='',to='';
  const money=(v,c)=>E.parseMoney(v||'0',E.precision(state(),c));

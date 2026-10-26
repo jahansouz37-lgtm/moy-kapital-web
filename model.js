@@ -1,6 +1,6 @@
-import {dateOK,parseMoney,decimal} from './work/engine.js?v=studio4';
+import {dateOK,parseMoney,decimal} from './work/engine.js?v=studio5';
 export const currencies={RUB:2,USD:2,EUR:2,USDT:6};
-export const blank=()=>({version:1,revision:0,personal:{accounts:[],events:[]},pending:[],settings:{space:'personal',hidden:false,widgets:{personal:['tasks','balances','operations'],work:['income','expense','pending','balances','flow']}}});
+export const blank=()=>({version:1,revision:0,personal:{accounts:[],events:[]},pending:[],reports:[],settings:{space:'personal',hidden:false,widgets:{personal:['tasks','balances','operations'],work:['income','expense','pending','balances','flow']}}});
 export const uid=()=>crypto.randomUUID();
 export const minor=(value,currency)=>{if(!(currency in currencies))throw Error('Неизвестная валюта');return parseMoney(value,currencies[currency]);};
 export const display=(value,currency)=>decimal(value,currencies[currency]);
@@ -10,10 +10,14 @@ const textOK=(x,max=240)=>typeof x==='string'&&x.length<=max;
 export function validate(s){
  if(!s||s.version!==1||!Number.isSafeInteger(s.revision)||s.revision<0||!s.personal||!Array.isArray(s.personal.accounts)||!Array.isArray(s.personal.events)||!Array.isArray(s.pending)||!s.settings)fail('Неподдерживаемый формат данных');
  if(s.personal.accounts.length>10000||s.personal.events.length>100000||s.pending.length>100000)fail('Слишком много записей');
+ // Older saved states have no reports field. It is added on the next save without touching existing records.
+ if(s.reports===undefined)s.reports=[];
+ if(!Array.isArray(s.reports)||s.reports.length>2000)fail('Некорректные отчёты');
  const ids=new Set();
  for(const a of s.personal.accounts){if(!idOK(a.id)||ids.has(a.id)||!textOK(a.name)||!a.name.trim()||!(a.currency in currencies)||!dateOK(a.date)||!/^[-]?\d+$/.test(a.opening))fail('Некорректный личный счёт');ids.add(a.id);}
  for(const e of s.personal.events){const account=s.personal.accounts.find(a=>a.id===e.account);if(!idOK(e.id)||ids.has(e.id)||!['income','expense'].includes(e.kind)||!dateOK(e.date)||!account||!/^\d+$/.test(e.amount)||BigInt(e.amount)<=0n||!textOK(e.category)||!textOK(e.comment,2000))fail('Некорректная личная операция');ids.add(e.id);if(account.date>e.date)fail('Операция раньше даты открытия счёта');}
  for(const p of s.pending){if(!idOK(p.id)||ids.has(p.id)||!['receipt','payout','transfer','exchange'].includes(p.kind)||!dateOK(p.date)||!textOK(p.counterparty)||!textOK(p.category)||!textOK(p.comment,2000)||!(p.currency in currencies)||!/^\d+$/.test(p.amount)||BigInt(p.amount)<=0n)fail('Некорректная нераспределённая запись');ids.add(p.id);if(p.kind==='exchange'&&(!(p.receivedCurrency in currencies)||!/^\d+$/.test(p.received)||BigInt(p.received)<=0n))fail('Некорректный обмен');}
+ for(const r of s.reports){if(!idOK(r.id)||ids.has(r.id)||!dateOK(r.date)||!textOK(r.title,240)||!textOK(r.note,20000)||!textOK(r.from,240)||!textOK(r.to,240)||!['received','sent','exchanged','kept','transfer','other'].includes(r.kind)||!(r.currency in currencies)||!(r.amount===''||/^\d+$/.test(r.amount))||!textOK(r.attachmentName,240)||!textOK(r.attachmentType,80)||!textOK(r.attachmentData,4500000))fail('Некорректный отчёт');if(r.attachmentData&&!/^data:(image\/(png|jpeg|webp)|application\/pdf);base64,[A-Za-z0-9+/=]+$/.test(r.attachmentData))fail('Некорректное вложение отчёта');ids.add(r.id);}
  if(!['personal','work'].includes(s.settings.space)||typeof s.settings.hidden!=='boolean')fail('Некорректные настройки');
  return s;
 }
