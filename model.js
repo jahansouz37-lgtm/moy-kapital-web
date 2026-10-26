@@ -1,6 +1,6 @@
 import {dateOK,parseMoney,decimal} from './work/engine.js?v=studio5';
 export const currencies={RUB:2,USD:2,EUR:2,USDT:6};
-export const blank=()=>({version:1,revision:0,personal:{accounts:[],events:[]},pending:[],reports:[],settings:{space:'personal',hidden:false,widgets:{personal:['tasks','balances','operations'],work:['income','expense','pending','balances','flow']}}});
+export const blank=()=>({version:1,revision:0,personal:{accounts:[],events:[]},pending:[],reports:[],settings:{space:'personal',hidden:false,theme:'dark',widgets:{personal:['tasks','balances','operations'],work:['income','expense','pending','balances','flow']}}});
 export const uid=()=>crypto.randomUUID();
 export const minor=(value,currency)=>{if(!(currency in currencies))throw Error('Неизвестная валюта');return parseMoney(value,currencies[currency]);};
 export const display=(value,currency)=>decimal(value,currencies[currency]);
