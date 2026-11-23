@@ -382,15 +382,37 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
 }
  let data;
  let storageError=false;
- try{const s=localStorage.getItem(KEY);data=s?validate(JSON.parse(s)):{credits:[],paid:{},repayments:[]}}
- catch(err){
-   if(localStorage.getItem(KEY)!==null){storageError=true;data={credits:[],paid:{},repayments:[]};setTimeout(()=>alert("Не удалось прочитать сохранённые данные. Создайте резервную копию текущего хранилища перед изменениями. Запись временно отключена: "+err.message),0)}
-   else data={credits:[],paid:{},repayments:[]};
+ try {
+   const stored=localStorage.getItem(KEY);
+   data=stored?validate(JSON.parse(stored)):{credits:[],paid:{},repayments:[]};
+ } catch(err) {
+   storageError=true;
+   data={credits:[],paid:{},repayments:[]};
+   console.error("Ошибка чтения хранилища",err);
+   setTimeout(()=>alert("Не удалось прочитать сохранённые данные. Чтобы не повредить старые записи, сохранение отключено.\nПричина: "+err.message),0);
  }
  function save(){
-   if(storageError){alert("Запись отключена из-за ошибки чтения данных. Не перезагружайте страницу и сделайте копию вручную.");return false}
-   try{localStorage.setItem(KEY,JSON.stringify(data));render();return true}
-   catch(err){alert("Не удалось сохранить данные на устройстве: "+err.message);return false}
+   if(storageError){
+     alert("Сохранение заблокировано: старые данные не удалось прочитать. Не перезаписывай их без резервной копии.");
+     return false;
+   }
+   let serialized;
+   try {
+     serialized=JSON.stringify(data);
+     localStorage.setItem(KEY,serialized);
+     if(localStorage.getItem(KEY)!==serialized)throw Error("Браузер не подтвердил запись в хранилище");
+   } catch(err) {
+     console.error("Ошибка локального хранения",err);
+     alert("Не удалось записать данные в браузер: "+err.message+"\nОткрой сайт в обычном Safari или Chrome, не в режиме инкогнито, и разреши хранение данных сайтов.");
+     return false;
+   }
+   try {
+     render();
+   } catch(err) {
+     console.error("Ошибка обновления интерфейса после сохранения",err);
+     alert("Данные УЖЕ СОХРАНЕНЫ в браузере, но при обновлении экрана возникла ошибка: "+err.message+"\nПопробуй обновить страницу. Повторно импортировать файл не нужно.");
+   }
+   return true;
  }
  const due=(c,y,m)=>new Date(y,m,Math.min(c.day,new Date(y,m+1,0).getDate()));
  const isActive=(c,d)=>c.type==="monthly"&&c.balance>0&&(!c.start||localDate(d)>=c.start)&&(!c.end||localDate(d)<=c.end);
@@ -627,9 +649,14 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
    try{
      if(file.size>2e6)throw Error("Файл слишком большой");
      const incoming=validate(JSON.parse(await file.text()));
-     if(confirm("Импорт заменит все текущие записи, график и историю погашений. Сначала сохрани резервную копию. Продолжить?")){
-       const old=data;data=incoming;storageError=false;
-       if(!save())data=old;
+     if(confirm("Импорт заменит все текущие записи, график и историю погашений. Если они тебе нужны, сначала сделай экспорт JSON. Продолжить?")){
+       const old=data,wasLocked=storageError;
+       data=incoming;storageError=false;
+       if(save()){
+         alert("Импорт завершён: "+incoming.credits.length+" обязательств. Данные сохранены только в этом браузере.");
+       } else {
+         data=old;storageError=wasLocked;
+       }
      }
    }catch(err){alert("Не удалось импортировать: "+err.message)}
    e.target.value="";
