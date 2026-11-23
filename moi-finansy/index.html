@@ -251,6 +251,36 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
 .event-item button{padding:5px 9px;font-size:11px}.kind-name{font-size:11px;color:var(--muted);margin-top:6px}
 .debt-chip{display:inline-block;font-size:10px;color:var(--accent);border:1px solid var(--line-bright);padding:4px 7px;margin:5px 0;border-radius:12px}
 @media(max-width:660px){.event-controls{grid-template-columns:1fr}.event-kind{grid-column:auto}}
+
+/* Persistent navigation and section transitions */
+.sidebar{z-index:20;overflow-y:auto;overscroll-behavior:contain}
+.nav a{position:relative;transition:color .22s ease,background .22s ease,box-shadow .22s ease,transform .22s ease}
+.nav a::before{content:"";position:absolute;left:0;top:25%;height:50%;width:3px;border-radius:4px;background:var(--accent);opacity:0;transform:scaleY(.4);transition:opacity .22s ease,transform .22s ease}
+.nav a.active::before{opacity:1;transform:scaleY(1)}
+.nav a.active{box-shadow:inset 0 0 0 1px rgba(73,196,155,.18)}
+.nav a:hover svg,.nav a.active svg{transform:scale(1.08)}
+.nav svg{transition:transform .22s ease}
+[id$="Panel"],#overview{scroll-margin-top:24px}
+.panel.nav-arrival{animation:section-arrival .7s ease-out}
+@keyframes section-arrival{0%{box-shadow:0 0 0 2px rgba(73,196,155,.55),0 12px 38px rgba(73,196,155,.18)}100%{box-shadow:var(--shadow)}}
+@media(max-width:900px){
+ .sidebar{position:fixed;inset:auto 0 0;height:auto;padding:6px 8px calc(6px + env(safe-area-inset-bottom));display:block;border:0;border-top:1px solid var(--line);background:rgba(9,30,45,.96);box-shadow:0 -8px 30px rgba(0,8,22,.2);backdrop-filter:blur(16px)}
+ :root[data-theme=light] .sidebar{background:rgba(255,255,255,.96)}
+ .sidebar .brand,.side-bottom,.nav-group-title{display:none}
+ .nav{display:flex;flex-direction:row;gap:2px;padding:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+ .nav::-webkit-scrollbar{display:block;height:2px}.nav::-webkit-scrollbar-thumb{background:var(--line-bright);border-radius:2px}
+ .nav a{flex:1 0 56px;min-width:56px;min-height:54px;padding:6px 3px;display:flex;flex-direction:column;justify-content:center;gap:4px;text-align:center;font-size:10px;line-height:1.15;white-space:nowrap;border-radius:10px}
+ .nav a::before{left:25%;top:0;height:3px;width:50%;transform:scaleX(.4)}
+ .nav a.active::before{transform:scaleX(1)}
+ .nav svg{width:18px;height:18px}
+ .content{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ .nav a,.nav a::before,.nav svg{transition:none}
+ .panel.nav-arrival{animation:none}
+}
+
 </style></head><body>
 <div class="shell">
 <aside class="sidebar" aria-label="Навигация">
@@ -769,7 +799,7 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
         const current=today(),monthly=monthRows(overviewYear,m);
         selected=current.getFullYear()===overviewYear&&current.getMonth()===m?current.getDate():(monthly[0]?.d.getDate()||1);
         draw();
-        $("calMonth").scrollIntoView({behavior:"smooth",block:"center"});
+        $("calMonth").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"});
       };
       root.append(el);
     }
@@ -804,9 +834,72 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
  });
  document.getElementById("todayText").textContent=
    new Date().toLocaleDateString("ru-RU",{day:"numeric",month:"long",year:"numeric"})+" · Личный финансовый обзор";
- const links=[...document.querySelectorAll(".nav a")];
- links.forEach(a=>a.addEventListener("click",()=>{
-   links.forEach(x=>x.classList.toggle("active",x===a));
- }));
+ const nav=document.querySelector(".nav");
+ const links=[...nav.querySelectorAll("a")];
+ const sections=links.map(link=>({link,section:document.getElementById(link.hash.slice(1))})).filter(item=>item.section);
+ const reduced=matchMedia("(prefers-reduced-motion: reduce)");
+ const breadcrumb=document.querySelector(".breadcrumb strong");
+ let active=links[0], navigating=false, settleTimer, scrollFrame;
+ function activate(link){
+   if(!link)return;
+   active=link;
+   links.forEach(item=>{
+     const selected=item===link;
+     item.classList.toggle("active",selected);
+     if(selected)item.setAttribute("aria-current","location");else item.removeAttribute("aria-current");
+   });
+   breadcrumb.textContent=link.textContent.trim();
+   if(matchMedia("(max-width: 900px)").matches){
+     nav.scrollTo({left:link.offsetLeft-nav.offsetLeft-(nav.clientWidth-link.offsetWidth)/2,behavior:reduced.matches?"auto":"smooth"});
+   }
+ }
+ function arrival(link){
+   const section=document.getElementById(link.hash.slice(1));
+   if(!section||reduced.matches)return;
+   section.classList.remove("nav-arrival");
+   void section.offsetWidth;
+   section.classList.add("nav-arrival");
+ }
+ function updateFromScroll(){
+   if(navigating)return;
+   const threshold=Math.min(180,window.innerHeight*.25);
+   const passed=sections.filter(item=>item.section.id!=="overview"&&item.section.getBoundingClientRect().top<=threshold)
+     .sort((a,b)=>a.section.getBoundingClientRect().top-b.section.getBoundingClientRect().top);
+   if(!passed.length){activate(links[0]);return}
+   const top=passed[passed.length-1].section.getBoundingClientRect().top;
+   const peers=passed.filter(item=>Math.abs(item.section.getBoundingClientRect().top-top)<8);
+   const choice=peers.find(item=>item.link===active)||peers[0];
+   activate(choice.link);
+ }
+ function finishNavigation(){
+   navigating=false;
+   arrival(active);
+ }
+ function beginNavigation(link){
+   navigating=true;
+   activate(link);
+   clearTimeout(settleTimer);
+   settleTimer=setTimeout(finishNavigation,reduced.matches?100:1100);
+ }
+ links.forEach(link=>link.addEventListener("click",()=>beginNavigation(link)));
+ document.querySelector(".brand").addEventListener("click",()=>beginNavigation(links[0]));
+ window.addEventListener("scroll",()=>{
+   if(navigating){
+     clearTimeout(settleTimer);
+     settleTimer=setTimeout(finishNavigation,140);
+   }else if(!scrollFrame){
+     scrollFrame=requestAnimationFrame(()=>{scrollFrame=0;updateFromScroll()});
+   }
+ },{passive:true});
+ // A manual gesture takes control immediately instead of waiting for a smooth jump.
+ ["wheel","touchstart"].forEach(type=>window.addEventListener(type,()=>{
+   if(navigating){navigating=false;clearTimeout(settleTimer)}
+ },{passive:true}));
+ window.addEventListener("hashchange",()=>{
+   const item=sections.find(entry=>entry.link.hash===location.hash);
+   if(item)beginNavigation(item.link);
+ });
+ const initial=sections.find(item=>item.link.hash===location.hash);
+ if(initial)activate(initial.link);else updateFromScroll();
 })();
 </script></body></html>
