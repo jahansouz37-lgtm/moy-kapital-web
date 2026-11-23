@@ -281,6 +281,31 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
  .panel.nav-arrival{animation:none}
 }
 
+/* The active surface moves between links like a soft drop. The ordinary
+   active background remains as a fallback if scripting is unavailable. */
+.nav{position:relative;isolation:isolate}
+.nav a{z-index:1}
+.nav-indicator{position:absolute;top:0;left:0;z-index:0;pointer-events:none;opacity:0;
+  width:0;height:0;transform:translate(0,0);transition:transform .55s cubic-bezier(.22,1,.36,1),width .55s cubic-bezier(.22,1,.36,1),height .55s cubic-bezier(.22,1,.36,1),opacity .15s}
+.nav-indicator::after{content:"";position:absolute;inset:0;border-radius:14px;
+  background:linear-gradient(110deg,rgba(33,134,105,.32),rgba(22,72,91,.48));
+  box-shadow:inset 0 0 0 1px rgba(91,220,173,.24),0 5px 18px rgba(0,0,0,.12)}
+.nav-indicator::before{content:"";position:absolute;z-index:1;left:0;top:25%;height:50%;width:3px;border-radius:4px;background:var(--accent)}
+:root[data-theme=light] .nav-indicator::after{background:linear-gradient(110deg,#d2f2e3,#e6f5ee);box-shadow:inset 0 0 0 1px rgba(12,116,88,.19),0 5px 18px rgba(12,116,88,.08)}
+.nav.has-indicator a.active,.nav.has-indicator a.active:hover{background:transparent;box-shadow:none}
+.nav.has-indicator a.active::before{opacity:0}
+.nav-indicator.ready{opacity:1}
+.nav-indicator.moving::after{animation:drop-vertical .55s cubic-bezier(.22,1,.36,1)}
+@keyframes drop-vertical{0%,100%{transform:scale(1);border-radius:14px}35%{transform:scale(.96,1.16);border-radius:22px}70%{transform:scale(1.02,.96)}}
+@keyframes drop-horizontal{0%,100%{transform:scale(1);border-radius:10px}35%{transform:scale(1.14,.93);border-radius:20px}70%{transform:scale(.97,1.04)}}
+@media(max-width:900px){
+ .nav-indicator::before{left:25%;top:0;width:50%;height:3px}
+ .nav-indicator::after{border-radius:10px}
+ .nav-indicator.moving::after{animation-name:drop-horizontal}
+}
+@media(prefers-reduced-motion:reduce){.nav-indicator{transition:none}.nav-indicator.moving::after{animation:none}}
+
+
 </style></head><body>
 <div class="shell">
 <aside class="sidebar" aria-label="Навигация">
@@ -839,10 +864,35 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
  const sections=links.map(link=>({link,section:document.getElementById(link.hash.slice(1))})).filter(item=>item.section);
  const reduced=matchMedia("(prefers-reduced-motion: reduce)");
  const breadcrumb=document.querySelector(".breadcrumb strong");
- let active=links[0], navigating=false, settleTimer, scrollFrame;
+ const indicator=document.createElement("span");
+ indicator.className="nav-indicator";
+ indicator.setAttribute("aria-hidden","true");
+ nav.prepend(indicator);
+ nav.classList.add("has-indicator");
+ let active=links[0], indicatorLink=null, navigating=false, settleTimer, scrollFrame;
+ function placeIndicator(link,animate=true){
+   if(!link)return;
+   // Link offsets are relative to the positioned nav, including its scrollable content.
+   const changed=indicatorLink!==link;
+   if(!animate)indicator.style.transition="none";
+   indicator.style.width=link.offsetWidth+"px";
+   indicator.style.height=link.offsetHeight+"px";
+   indicator.style.transform=`translate(${link.offsetLeft}px, ${link.offsetTop}px)`;
+   if(changed&&animate&&!reduced.matches){
+     indicator.classList.remove("moving");
+     void indicator.offsetWidth;
+     indicator.classList.add("moving");
+   }
+   indicatorLink=link;
+   indicator.classList.add("ready");
+   if(!animate){void indicator.offsetWidth;indicator.style.transition=""}
+ }
+ window.addEventListener("resize",()=>placeIndicator(active,false),{passive:true});
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>placeIndicator(active,false));
  function activate(link){
    if(!link)return;
    active=link;
+   placeIndicator(link,indicatorLink!==null);
    links.forEach(item=>{
      const selected=item===link;
      item.classList.toggle("active",selected);
@@ -850,7 +900,7 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
    });
    breadcrumb.textContent=link.textContent.trim();
    if(matchMedia("(max-width: 900px)").matches){
-     nav.scrollTo({left:link.offsetLeft-nav.offsetLeft-(nav.clientWidth-link.offsetWidth)/2,behavior:reduced.matches?"auto":"smooth"});
+     nav.scrollTo({left:link.offsetLeft-(nav.clientWidth-link.offsetWidth)/2,behavior:reduced.matches?"auto":"smooth"});
    }
  }
  function arrival(link){
