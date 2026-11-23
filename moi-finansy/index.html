@@ -1,6 +1,209 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1118"><title>Мои финансы</title><style>
-:root{font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#e9f0f5;background:#0b1118}*{box-sizing:border-box}body{margin:0}main{max-width:1080px;margin:auto;padding:28px 18px 90px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:32px}h1{font-size:25px;margin:0}h2{font-size:18px;margin:0 0 16px}.muted{color:#95a5b4}.eyebrow{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:#65d8b0}button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:12px;padding:12px 16px;background:#1b2a35;color:#e9f0f5}button.primary{background:#62dbb1;color:#07261d;font-weight:700}button.danger{color:#ffb2ad}button:hover{filter:brightness(1.12)}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card,.panel{background:#121e28;border:1px solid #273743;border-radius:20px;padding:22px}.card strong{display:block;font-size:clamp(22px,3vw,32px);margin-top:12px;overflow-wrap:anywhere}.panel{margin-top:18px}.head{display:flex;justify-content:space-between;align-items:center;gap:12px}.stack{display:grid;gap:12px}.item{border:1px solid #273743;border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}.item p{margin:5px 0 0}.item .actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.progress{height:8px;background:#26343f;border-radius:10px;overflow:hidden;margin-top:12px}.progress>div{height:100%;background:#62dbb1}.tag{font-size:12px;color:#62dbb1}.overdue{color:#ff8f85}.empty{color:#95a5b4;text-align:center;padding:28px 12px}.toolbar{display:flex;gap:8px;flex-wrap:wrap}dialog{background:#121e28;color:#e9f0f5;border:1px solid #39505d;border-radius:20px;padding:24px;width:min(95vw,480px)}dialog::backdrop{background:#000b}form{display:grid;gap:12px}label{display:grid;gap:6px;color:#c3d0d9;font-size:13px}input,select{background:#0b151d;color:white;border:1px solid #344651;border-radius:10px;padding:12px;width:100%;color-scheme:dark}form menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:10px 0 0}.note{font-size:12px;color:#95a5b4;line-height:1.5}footer{margin-top:24px}.sr{position:absolute;left:-9999px}@media(max-width:700px){.cards{grid-template-columns:1fr}.card{padding:18px}.item{align-items:flex-start;flex-direction:column}.item .actions{justify-content:flex-start}header{align-items:flex-start;flex-direction:column}}
-.state-past{font-size:12px;color:#ffa69d;margin-top:7px}.state-soon{font-size:12px;color:#f9cf79;margin-top:7px}.alert-line{padding:12px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #283b48}.alert-line:first-child{border-top:0}.alert-line strong{overflow-wrap:anywhere}.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat-cell{border:1px solid #283b48;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}.stat-cell strong{font-size:18px}.forecast-line{margin:12px 0}.forecast-head{display:flex;justify-content:space-between;gap:12px;font-size:14px}.forecast-track{height:9px;border-radius:99px;background:#26343f;margin-top:7px;overflow:hidden}.forecast-track>div{background:#62dbb1;height:100%;border-radius:99px}.panel[hidden]{display:none}@media(max-width:700px){.stat-grid{grid-template-columns:1fr}.head{flex-wrap:wrap}}</style></head><body><main><header><div><div class="eyebrow">Личный финансовый кабинет</div><h1>Мои финансы</h1><p class="muted">Платежи и долги под контролем</p></div><button class="primary" id="add">+ Добавить кредит</button></header><section class="cards"><div class="card"><span class="muted">Остаток долга</span><strong id="total">0 ₽</strong></div><div class="card"><span class="muted">Платежи в этом месяце</span><strong id="monthly">0 ₽</strong></div><div class="card"><span class="muted">Ближайший платёж</span><strong id="next">—</strong><span id="nextLabel" class="muted"></span></div></section><section class="panel" id="alertsPanel" hidden><div class="head"><h2>Внимание: ближайшие платежи</h2></div><p class="note">Проверяй статус в банке: предупреждения основаны только на твоих отметках в этом браузере.</p><div id="alerts"></div></section><section class="panel"><div class="head"><h2>Мои кредиты</h2><span class="muted" id="count">0</span></div><div class="stack" id="credits"></div></section><section class="panel"><div class="head"><h2>График платежей</h2><select id="month" aria-label="Выберите месяц"></select></div><div class="stack" id="schedule"></div><div id="monthStats" style="margin-top:16px"></div></section><section class="panel"><h2>План на 6 месяцев</h2><div id="forecast"></div><p class="note">Прогноз по текущим суммам. Платежи, проценты и остаток могут изменяться — сверяй данные с банком.</p></section><section class="panel"><div class="head"><h2>Резервная копия</h2><div class="toolbar"><button id="calendarExport" title="Скачать календарь с напоминаниями за 3 дня и за 1 день">Календарь (.ics)</button><button id="export">Экспорт JSON</button><button id="import">Импорт JSON</button><input class="sr" type="file" accept="application/json,.json" id="file"></div></div><p class="note">Данные хранятся только в этом браузере на этом устройстве. При очистке данных браузера они могут исчезнуть. Регулярно сохраняй резервную копию. Файл календаря содержит названия кредитов и суммы, не делись им публично. Не используй публичные или чужие устройства.</p></section><footer class="note">Без банковских подключений. Не вводи номера карт, пароли и другие секретные данные. Суммы вводятся в рублях.</footer></main>
+
+:root{
+  --bg:#0b1015;--surface:#11191f;--surface-2:#162128;--surface-hover:#1b2a31;
+  --line:#26333c;--line-bright:#344b55;--text:#f0f6f4;--muted:#91a5ae;
+  --accent:#74e0ba;--accent-2:#37b88f;--accent-dark:#08271f;
+  --gold:#ebc17c;--danger:#ff9a92;--warning:#f8c976;
+  --shadow:0 18px 60px rgba(0,0,0,.13);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);background:var(--bg);color-scheme:dark
+}
+:root[data-theme="light"]{
+  --bg:#f4f7f5;--surface:#ffffff;--surface-2:#f0f6f3;--surface-hover:#e8f1ec;
+  --line:#dce6e1;--line-bright:#c3d9d0;--text:#132a29;--muted:#627b76;
+  --accent:#117b5d;--accent-2:#139572;--accent-dark:#e3f5ed;
+  --gold:#a9732a;--danger:#b33a31;--warning:#9d6916;
+  --shadow:0 16px 35px rgba(35,65,54,.055);color-scheme:light
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:28px}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 80% -30%,rgba(81,154,131,.1),transparent 40%),var(--bg)}
+button,input,select{font:inherit}
+button{cursor:pointer;border:1px solid transparent;border-radius:12px;padding:11px 14px;background:var(--surface-2);color:var(--text);transition:background .2s,transform .2s,border .2s}
+button:hover{background:var(--surface-hover);border-color:var(--line-bright)}
+button:active{transform:translateY(1px)}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-dark);font-weight:750}
+:root[data-theme="light"] button.primary{color:#fff}
+button.primary:hover{filter:brightness(1.07);background:var(--accent)}
+button.danger{color:var(--danger)}
+button.danger:hover{background:rgba(230,87,81,.08);border-color:rgba(230,87,81,.3)}
+a{color:inherit;text-decoration:none}
+a:hover{color:var(--accent)}
+.shell{display:grid;grid-template-columns:242px minmax(0,1fr);min-height:100vh}
+.sidebar{position:sticky;top:0;height:100vh;padding:27px 17px;display:flex;flex-direction:column;gap:32px;border-right:1px solid var(--line);background:rgba(17,25,31,.87)}
+:root[data-theme="light"] .sidebar{background:#fff}
+.brand{display:flex;align-items:center;gap:12px;padding:0 10px}
+.brand-mark{height:41px;width:41px;flex:none;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,#bceccf,#399f84);color:#092a22;font-size:21px;font-weight:850;box-shadow:0 8px 24px rgba(55,184,143,.22);letter-spacing:-.1em;padding-right:3px}
+.brand-title{display:block;font-size:17px;letter-spacing:-.04em;font-weight:800}
+.brand-sub{display:block;color:var(--muted);font-size:11px;letter-spacing:.035em;margin-top:3px}
+.nav{display:flex;flex-direction:column;gap:5px}
+.nav-group-title{padding:0 13px 10px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--muted)}
+.nav a{min-height:45px;display:flex;align-items:center;gap:12px;padding:12px 13px;border-radius:12px;color:var(--muted);font-weight:600;font-size:13px;transition:.2s}
+.nav a:hover{color:var(--text);background:var(--surface-hover)}
+.nav a.active{color:var(--accent);background:rgba(116,224,186,.11)}
+:root[data-theme="light"] .nav a.active{background:#e6f5ee}
+.nav svg{width:19px;height:19px;flex:none;stroke-width:1.9}
+.side-bottom{margin-top:auto;padding:17px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(140deg,var(--surface-2),transparent)}
+.side-bottom .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(116,224,186,.09);margin-right:7px}
+.side-bottom strong{font-size:12px}
+.side-bottom p{color:var(--muted);font-size:12px;line-height:1.65;margin:9px 0 0}
+.content{min-width:0;width:100%;max-width:1480px;margin:0 auto;padding:29px clamp(20px,4vw,65px) 54px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:34px}
+.breadcrumb{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:9px}
+.breadcrumb .sep{color:var(--line-bright)}.breadcrumb strong{color:var(--text);font-weight:650}
+.top-actions{display:flex;align-items:center;gap:12px}
+.tiny-badge{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:9px 12px;background:var(--surface);font-size:12px;color:var(--muted)}
+.tiny-badge svg{width:15px;height:15px;color:var(--accent)}
+#themeToggle{width:39px;height:39px;padding:0;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);border-radius:13px;font-size:18px}
+.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:27px}
+.eyebrow{font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--accent);font-weight:850;margin-bottom:12px}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:clamp(29px,3.8vw,45px);letter-spacing:-.055em;line-height:1.1;margin-bottom:13px;font-weight:780}
+h1 span{color:var(--accent)}
+.hero-description{margin:0;color:var(--muted);font-size:14px;line-height:1.75;max-width:590px}
+#add{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;padding:14px 19px;border-radius:13px;box-shadow:0 9px 25px rgba(64,207,153,.11)}
+#add svg{width:18px;height:18px}
+.cards{display:grid;grid-template-columns:1.24fr 1fr 1fr;gap:15px;margin-bottom:20px}
+.card{position:relative;overflow:hidden;min-height:179px;padding:24px 25px;border:1px solid var(--line);border-radius:19px;background:var(--surface);box-shadow:var(--shadow)}
+.card.main-card{background:linear-gradient(132deg,#123e36 4%,#175247 62%,#27745d 120%);border-color:#276a58;color:#fff}
+.card.main-card::after{position:absolute;content:"";height:210px;width:210px;right:-96px;bottom:-116px;border:1px solid rgba(178,247,209,.25);border-radius:50%;box-shadow:0 0 0 33px rgba(132,227,187,.05),0 0 0 70px rgba(132,227,187,.035)}
+.metric-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);font-weight:650}
+.main-card .metric-head{color:#c3e8d9}
+.metric-icon{height:35px;width:35px;border-radius:11px;display:grid;place-items:center;background:var(--surface-2);color:var(--accent)}
+.metric-icon svg{width:18px;height:18px;stroke-width:1.8}
+.main-card .metric-icon{background:rgba(215,250,232,.12);color:#c5f4df}
+.card strong{position:relative;z-index:1;display:block;margin-top:24px;font-size:clamp(21px,2.5vw,32px);letter-spacing:-.055em;line-height:1.13;overflow-wrap:anywhere;font-weight:750}
+.card .metric-caption{display:block;margin-top:11px;font-size:11px;color:var(--muted);min-height:16px}
+.main-card .metric-caption{color:#c3e8d9}
+.dashboard-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:start}
+.panel{min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:23px 23px 24px;box-shadow:var(--shadow)}
+.panel[hidden]{display:none}
+#alertsPanel{grid-column:1/-1;border-color:rgba(244,192,114,.27);background:linear-gradient(120deg,rgba(249,189,89,.055),var(--surface) 55%)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.panel-heading{display:flex;align-items:center;gap:11px}
+.section-icon{display:grid;place-items:center;width:37px;height:37px;flex:none;border-radius:11px;background:var(--surface-2);color:var(--accent)}
+.section-icon svg{width:19px;height:19px}
+h2{font-size:17px;font-weight:750;letter-spacing:-.035em;margin:0}
+.panel-sub{color:var(--muted);font-size:12px;line-height:1.6;margin:7px 0 0}
+.count-bubble{font-size:12px;font-weight:750;min-width:30px;text-align:center;padding:7px 10px;border:1px solid var(--line);border-radius:9px;color:var(--muted)}
+#alertsPanel .section-icon{color:var(--warning);background:rgba(248,201,118,.1)}
+#credits,#schedule{gap:10px}
+.stack{display:grid;gap:10px}
+.item{border:1px solid var(--line);border-radius:14px;padding:15px 16px;background:var(--surface-2);display:flex;align-items:center;justify-content:space-between;gap:14px;transition:border .2s,background .2s}
+.item:hover{border-color:var(--line-bright)}
+.item strong{font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+.item p{font-size:12px;line-height:1.65;margin:5px 0 0;color:var(--muted)}
+.item .actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.item button{background:var(--surface);font-size:12px;padding:9px 11px;border:1px solid var(--line);white-space:nowrap}
+.item button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-dark)}
+:root[data-theme="light"] .item button.primary{color:#fff}
+.empty{color:var(--muted);text-align:center;padding:39px 15px;border:1px dashed var(--line-bright);border-radius:14px;background:var(--surface-2);font-size:13px;line-height:1.7}
+select{background:var(--surface-2);color:var(--text);border:1px solid var(--line);border-radius:11px;padding:10px 12px;max-width:100%;min-width:185px;outline:0}
+input{background:var(--surface-2);color:var(--text);border:1px solid var(--line-bright);border-radius:11px;padding:12px 13px;width:100%}
+input::placeholder{color:var(--muted)}
+.progress{height:9px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin-top:16px}
+.progress>div{height:100%;background:linear-gradient(90deg,var(--accent-2),var(--accent));border-radius:99px;transition:width .3s}
+.note{color:var(--muted);font-size:12px;line-height:1.7}
+#monthStats .stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#monthStats .stat-cell{border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:12px 11px;display:flex;flex-direction:column;gap:8px}
+#monthStats .stat-cell span{font-size:11px;color:var(--muted);line-height:1.4}
+#monthStats .stat-cell strong{font-size:15px;font-weight:750;letter-spacing:-.025em;overflow-wrap:anywhere}
+#monthStats p{margin:9px 0 0}
+.alert-line{padding:13px 0;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.alert-line:first-child{border-top:0}
+.alert-line strong{font-size:13px;overflow-wrap:anywhere}
+.alert-line p{margin:5px 0 0}
+.state-past{font-size:11px;color:var(--danger);margin-top:6px}
+.state-soon{font-size:11px;color:var(--warning);margin-top:6px}
+#forecastPanel,#backupPanel{grid-column:1/-1}
+#forecast{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 35px}
+.forecast-line{padding:10px 0}
+.forecast-head{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--muted)}
+.forecast-head strong{color:var(--text);white-space:nowrap;font-size:13px}
+.forecast-track{height:8px;border-radius:99px;background:var(--surface-2);margin-top:10px;overflow:hidden}
+.forecast-track>div{background:linear-gradient(90deg,#279d7c,var(--accent));height:100%;border-radius:99px}
+.forecast-line .note{margin-top:7px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+.toolbar button{border:1px solid var(--line);font-size:12px}
+.data-footer{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:13px 15px;margin-top:15px}
+.data-footer .note{margin:0}
+.footer{padding:24px 2px 8px;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:26px}
+.footer p{margin:0}
+dialog{background:var(--surface);color:var(--text);border:1px solid var(--line-bright);border-radius:21px;padding:27px;width:min(94vw,500px);max-height:92vh;overflow-y:auto;box-shadow:0 32px 100px #0007}
+dialog::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(5px)}
+form{display:grid;gap:14px}
+form h2{font-size:21px;margin:0 0 8px}
+label{display:grid;gap:7px;color:var(--muted);font-size:12px;font-weight:650}
+form menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:10px 0 0}
+form .note{margin:0}
+.sr{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:1180px){.shell{grid-template-columns:210px minmax(0,1fr)}.sidebar{padding:24px 12px}.cards{grid-template-columns:repeat(3,minmax(0,1fr))}.card{padding:21px 18px}.content{padding:27px 26px 48px}#monthStats .stat-grid{grid-template-columns:1fr}.stat-cell{min-width:0}}
+@media(max-width:900px){
+ .shell{display:block}.sidebar{position:relative;height:auto;padding:16px 20px 0;border-right:0;border-bottom:1px solid var(--line);gap:15px}
+ .brand{padding:0}.nav{flex-direction:row;gap:5px;overflow:auto;scrollbar-width:none;padding:0 0 10px}
+ .nav::-webkit-scrollbar{display:none}.nav a{white-space:nowrap;padding:9px 12px;min-height:38px;font-size:12px}
+ .nav-group-title,.side-bottom{display:none}.content{padding:24px 21px 48px}
+}
+@media(max-width:660px){
+ .content{padding:18px 15px 40px}.topbar{margin-bottom:27px}.top-actions{gap:7px}
+ .tiny-badge{font-size:10px;padding:8px 10px}.breadcrumb{font-size:11px}
+ .hero{align-items:flex-start;flex-direction:column;gap:19px;margin-bottom:22px}
+ h1{font-size:33px}.hero-description{font-size:13px}
+ #add{width:100%;justify-content:center}
+ .cards{grid-template-columns:1fr;gap:10px;margin-bottom:12px}
+ .card{min-height:132px;padding:20px}.card strong{margin-top:14px;font-size:29px}.card .metric-caption{margin-top:7px}
+ .dashboard-grid{grid-template-columns:1fr;gap:12px}.panel{padding:18px 16px}
+ .panel-head{align-items:flex-start}.panel-sub{font-size:11px}
+ #forecast{grid-template-columns:1fr}.item{flex-direction:column;align-items:flex-start;gap:11px}
+ .item .actions{justify-content:flex-start;width:100%}.item button{flex:0 1 auto}
+ #monthStats .stat-grid{grid-template-columns:1fr}.toolbar{width:100%}.toolbar button{flex:1 1 130px}
+ .footer{font-size:11px}.sidebar{padding:14px 15px 0}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}button,.item,.progress>div{transition:none}}
+
+</style></head><body>
+<div class="shell">
+<aside class="sidebar" aria-label="Навигация">
+ <a href="#overview" class="brand" aria-label="Мои финансы — на главную">
+  <div class="brand-mark" aria-hidden="true">M</div>
+  <div><span class="brand-title">мои финансы</span><span class="brand-sub">личный кабинет</span></div>
+ </a>
+ <nav class="nav" aria-label="Разделы сайта">
+  <div class="nav-group-title">Навигация</div>
+  <a class="active" href="#overview"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Обзор</span></a>
+  <a href="#creditsPanel"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 9h18M16 15h2"/></svg><span>Кредиты</span></a>
+  <a href="#paymentsPanel"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 15h4"/></svg><span>Платежи</span></a>
+  <a href="#forecastPanel"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 2 5-6"/></svg><span>Прогноз</span></a>
+  <a href="#backupPanel"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span>Данные</span></a>
+ </nav>
+ <div class="side-bottom"><div><span class="status-dot"></span><strong>Данные только у тебя</strong></div><p>Записи остаются в этом браузере. Для переноса используй резервную копию.</p></div>
+</aside>
+<main class="content" id="overview">
+ <div class="topbar">
+  <div class="breadcrumb"><span>Финансы</span><span class="sep">/</span><strong>Обзор</strong></div>
+  <div class="top-actions"><span class="tiny-badge"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg><span>Локальный режим</span></span><button id="themeToggle" title="Переключить тему" aria-label="Переключить цветовую тему">☀</button></div>
+ </div>
+ <header class="hero">
+  <div><div class="eyebrow" id="todayText">Личный финансовый обзор</div><h1>Все платежи.<br><span>Один порядок.</span></h1><p class="hero-description">Планируй погашения, следи за сроками и отмечай оплаченные кредиты. Без таблиц и лишней суеты.</p></div>
+  <button class="primary" id="add"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Добавить кредит</button>
+ </header>
+ <section class="cards" aria-label="Главные показатели">
+  <div class="card main-card"><div class="metric-head"><span>Остаток по кредитам</span><span class="metric-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 9h18M16 15h2"/></svg></span></div><strong id="total">0 ₽</strong><span class="metric-caption">Текущий остаток по твоим данным</span></div>
+  <div class="card"><div class="metric-head"><span>К оплате в этом месяце</span><span class="metric-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 15h4"/></svg></span></div><strong id="monthly">0 ₽</strong><span class="metric-caption">Платежи без отметки об оплате</span></div>
+  <div class="card"><div class="metric-head"><span>Следующий платёж</span><span class="metric-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></span></div><strong id="next">—</strong><span class="metric-caption" id="nextLabel">Пока нет платежей</span></div>
+ </section>
+ <div class="dashboard-grid">
+  <section class="panel" id="alertsPanel" hidden><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.5 2.2 17.6a2 2 0 0 0 1.7 3h16.2a2 2 0 0 0 1.7-3L13.7 3.5a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg></span><div><h2>Требуют внимания</h2><p class="panel-sub">Сроки ближайших платежей и даты без отметки об оплате</p></div></div></div><div id="alerts"></div><p class="note" style="margin:12px 0 0">Статусы основаны на твоих отметках, а не на информации банков.</p></section>
+  <section class="panel" id="creditsPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 9h18M16 15h2"/></svg></span><div><h2>Мои кредиты</h2><p class="panel-sub">Остатки и обязательные платежи</p></div></div><span class="count-bubble" id="count">0</span></div><div class="stack" id="credits"></div></section>
+  <section class="panel" id="paymentsPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></svg></span><div><h2>График платежей</h2><p class="panel-sub">Все платежи выбранного месяца</p></div></div><select id="month" aria-label="Выберите месяц"></select></div><div class="stack" id="schedule"></div><div id="monthStats" style="margin-top:18px"></div></section>
+  <section class="panel" id="forecastPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 2 5-6"/></svg></span><div><h2>Прогноз на полгода</h2><p class="panel-sub">Как распределены будущие платежи по месяцам</p></div></div></div><div id="forecast"></div><p class="note" style="margin:10px 0 0">Прогноз строится из введённых сумм. Фактические платежи и проценты проверяй в банке.</p></section>
+  <section class="panel" id="backupPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v12h14V8M10 13h4"/></svg></span><div><h2>Календарь и резервные копии</h2><p class="panel-sub">Переноси данные и сохраняй напоминания в календарь</p></div></div></div><div class="toolbar"><button id="calendarExport" title="Скачать календарь с напоминаниями за 3 дня и за 1 день">Экспорт календаря .ics</button><button id="export">Скачать копию .json</button><button id="import">Восстановить из файла</button><input class="sr" type="file" accept="application/json,.json" id="file"></div><div class="data-footer"><p class="note">Данные хранятся только в этом браузере. При удалении данных сайта они могут исчезнуть — сохраняй JSON-копию. Календарный файл содержит названия и суммы платежей; не публикуй его.</p></div></section>
+ </div>
+ <footer class="footer"><p class="note">Мои финансы · Личный учёт без подключения к банкам</p><p class="note">Не вводи номера карт, пароли и другую секретную информацию.</p></footer>
+</main></div>
+
 <dialog id="editor"><form id="creditForm"><h2 id="formTitle">Добавить кредит</h2><input type="hidden" name="id"><label>Название кредита<input name="name" maxlength="80" required placeholder="Например, Кредит на технику"></label><label>Остаток долга, ₽<input name="balance" type="number" min="0" max="100000000000" step="0.01" required></label><label>Обязательный платёж, ₽<input name="payment" type="number" min="0.01" max="100000000000" step="0.01" required></label><label>День платежа (1–31)<input name="day" type="number" min="1" max="31" required></label><label>Дата последнего платежа (необязательно)<input name="end" type="date"></label><p class="note">Для месяцев с меньшим количеством дней используется последний день месяца. Отмеченные платежи не вычитаются автоматически из остатка долга: обновляй остаток по данным банка.</p><menu><button type="button" id="cancel">Отмена</button><button class="primary" type="submit">Сохранить</button></menu></form></dialog>
 <script>
 (()=>{'use strict';const KEY='mao-finance-v1';const $=id=>document.getElementById(id);const money=n=>new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n);const today=new Date();let data=load();function load(){try{const x=JSON.parse(localStorage.getItem(KEY));return validate(x)}catch{return {credits:[],paid:{}}}}function validate(x){if(!x||!Array.isArray(x.credits)||typeof x.paid!=='object'||!x.paid||Array.isArray(x.paid))throw Error('Некорректный файл');if(x.credits.length>1000)throw Error('Слишком много записей');const ids=new Set();const credits=x.credits.map(c=>{if(typeof c.id!=='string'||!/^[-\w]{1,80}$/.test(c.id)||ids.has(c.id)||typeof c.name!=='string'||!c.name.trim()||c.name.length>80||!Number.isFinite(c.balance)||c.balance<0||c.balance>1e11||!Number.isFinite(c.payment)||c.payment<=0||c.payment>1e11||!Number.isInteger(c.day)||c.day<1||c.day>31||!(c.end===''||typeof c.end==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(c.end)))throw Error('Некорректная запись');ids.add(c.id);return {...c,name:c.name.trim()}});const paid={};for(const [k,v] of Object.entries(x.paid)){if(typeof v!=='boolean'||!/^[-\w]{1,80}:\d{4}-\d{2}$/.test(k))throw Error('Некорректный статус');if(ids.has(k.split(':')[0]))paid[k]=v}return {credits,paid}}function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}function due(c,y,m){return new Date(y,m,Math.min(c.day,new Date(y,m+1,0).getDate()))}function isoMonth(y,m){return `${y}-${String(m+1).padStart(2,'0')}`}function isActive(c,d){return c.balance>0&&(!c.end||d<=new Date(c.end+'T23:59:59'))}function paidKey(c,y,m){return `${c.id}:${isoMonth(y,m)}`}function node(tag,txt,cls){const e=document.createElement(tag);if(txt!==undefined)e.textContent=txt;if(cls)e.className=cls;return e}function btn(txt,fn,cls){const b=node('button',txt,cls);b.type='button';b.addEventListener('click',fn);return b}function render(){const y=today.getFullYear(),m=today.getMonth();$('total').textContent=money(data.credits.reduce((s,c)=>s+c.balance,0));const active=data.credits.filter(c=>isActive(c,due(c,y,m)));$('monthly').textContent=money(active.filter(c=>!data.paid[paidKey(c,y,m)]).reduce((s,c)=>s+c.payment,0));let upcoming=[];for(let offset=0;offset<24;offset++){const dt=new Date(y,m+offset,1),yy=dt.getFullYear(),mm=dt.getMonth();for(const c of data.credits){const d=due(c,yy,mm);if(isActive(c,d)&&!data.paid[paidKey(c,yy,mm)]&&(offset>0||d>=new Date(y,m,today.getDate())))upcoming.push({c,d})}if(upcoming.length)break}upcoming.sort((a,b)=>a.d-b.d);$('next').textContent=upcoming.length?upcoming[0].d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'}):'—';$('nextLabel').textContent=upcoming.length?upcoming[0].c.name:'';$('count').textContent=String(data.credits.length);$('credits').replaceChildren();if(!data.credits.length)$('credits').append(node('div','Пока нет кредитов. Добавь первый, чтобы увидеть график.','empty'));for(const c of data.credits){const item=node('div',undefined,'item'),left=node('div'),title=node('strong',c.name),sub=node('p',`${money(c.balance)} осталось · ${money(c.payment)} / мес. · ${c.day}-е число`,'muted'),actions=node('div',undefined,'actions');left.append(title,sub);actions.append(btn('Изменить',()=>edit(c)),btn('Удалить',()=>{if(confirm(`Удалить «${c.name}»?`)){data.credits=data.credits.filter(a=>a.id!==c.id);for(const k of Object.keys(data.paid))if(k.startsWith(c.id+':'))delete data.paid[k];save()}},'danger'));item.append(left,actions);$('credits').append(item)}renderSchedule()}function renderSchedule(){const [y,m]=$('month').value.split('-').map(Number);const yy=y,mm=m-1;const root=$('schedule');root.replaceChildren();const rows=data.credits.map(c=>({c,d:due(c,yy,mm)})).filter(a=>isActive(a.c,a.d)).sort((a,b)=>a.d-b.d);if(!rows.length){root.append(node('div','Нет запланированных платежей.','empty'));return}for(const {c,d} of rows){const key=paidKey(c,yy,mm),checked=!!data.paid[key],item=node('div',undefined,'item'),left=node('div'),title=node('strong',`${d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})} · ${c.name}`),sub=node('p',money(c.payment),'muted'),action=btn(checked?'✓ Оплачено':'Отметить оплату',()=>{data.paid[key]=!data.paid[key];save()},checked?'primary':'');left.append(title,sub);item.append(left,action);root.append(item)}}function edit(c){const f=$('creditForm');f.reset();f.elements.id.value=c?.id||'';f.elements.name.value=c?.name||'';f.elements.balance.value=c?.balance??'';f.elements.payment.value=c?.payment??'';f.elements.day.value=c?.day??'';f.elements.end.value=c?.end||'';$('formTitle').textContent=c?'Изменить кредит':'Добавить кредит';$('editor').showModal()}$('add').onclick=()=>edit(null);$('cancel').onclick=()=>$('editor').close();$('creditForm').onsubmit=e=>{e.preventDefault();const f=e.currentTarget;const id=f.elements.id.value||('c'+Date.now().toString(36)+Math.random().toString(36).slice(2,8));const c={id,name:f.elements.name.value.trim(),balance:Number(f.elements.balance.value),payment:Number(f.elements.payment.value),day:Number(f.elements.day.value),end:f.elements.end.value};try{validate({credits:[c],paid:{}})}catch(err){alert(err.message);return}const i=data.credits.findIndex(x=>x.id===id);if(i<0)data.credits.push(c);else data.credits[i]=c;save();$('editor').close()};const select=$('month');for(let i=-3;i<24;i++){const d=new Date(today.getFullYear(),today.getMonth()+i,1),option=node('option',d.toLocaleDateString('ru-RU',{month:'long',year:'numeric'}));option.value=isoMonth(d.getFullYear(),d.getMonth());if(i===0)option.selected=true;select.append(option)}select.onchange=renderSchedule;$('export').onclick=()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='moi-finansy-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};$('import').onclick=()=>$('file').click();$('file').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>2e6)throw Error('Файл слишком большой');const incoming=validate(JSON.parse(await file.text()));if(confirm('Импорт заменит все текущие данные. Продолжить?')){data=incoming;save()}}catch(err){alert('Не удалось импортировать: '+err.message)}e.target.value=''};;(function upgrade(){
@@ -122,4 +325,30 @@
     alert('Календарь скачан: '+count+' событий. Импортируй файл в своё приложение-календарь. Уведомления работают через календарь, не через этот сайт.');
   };
 })();render()})();
+</script>
+<script>
+(()=>{
+ "use strict";
+ const toggle=document.getElementById("themeToggle");
+ const themeKey="mao-finance-theme";
+ function setTheme(value){
+   document.documentElement.dataset.theme=value;
+   toggle.textContent=value==="light"?"☾":"☀";
+   toggle.setAttribute("aria-label",value==="light"?"Включить тёмную тему":"Включить светлую тему");
+ }
+ let saved="dark";
+ try{saved=localStorage.getItem(themeKey)==="light"?"light":"dark"}catch{}
+ setTheme(saved);
+ toggle.addEventListener("click",()=>{
+   const next=document.documentElement.dataset.theme==="light"?"dark":"light";
+   setTheme(next);
+   try{localStorage.setItem(themeKey,next)}catch{}
+ });
+ document.getElementById("todayText").textContent=
+   new Date().toLocaleDateString("ru-RU",{day:"numeric",month:"long",year:"numeric"})+" · Личный финансовый обзор";
+ const links=[...document.querySelectorAll(".nav a")];
+ links.forEach(a=>a.addEventListener("click",()=>{
+   links.forEach(x=>x.classList.toggle("active",x===a));
+ }));
+})();
 </script></body></html>
