@@ -179,6 +179,12 @@ form .note{margin:0}
 @media(max-width:1300px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:660px){.cards{grid-template-columns:1fr}}
 
+
+.calendar-panel{grid-column:1/-1}.calendar-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.calendar-nav button{border:1px solid var(--line);padding:8px 12px;min-height:37px}.calendar-nav strong{min-width:145px;text-align:center;text-transform:capitalize;font-size:14px}.calendar-legend{color:var(--muted);font-size:11px;margin-bottom:14px}
+.calendar-weekdays,.calendar-cells{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.calendar-weekdays span{padding:7px;text-align:center;color:var(--muted);font-size:11px;font-weight:700}
+.cal-blank,.cal-date{min-width:0;min-height:87px;border-radius:11px}.cal-blank{background:rgba(128,128,128,.035)}.cal-date{border:1px solid var(--line);background:var(--surface-2);padding:10px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;overflow:hidden}.cal-date:hover{border-color:var(--accent)}.cal-date.selected{outline:2px solid var(--accent);outline-offset:-2px}.cal-date.today .day-num{background:var(--accent);color:var(--accent-dark);border-radius:50%;padding:3px 7px;margin:-3px}.day-num{font-weight:750;font-size:12px}.day-price{font-weight:700;font-size:11px;overflow-wrap:anywhere}.day-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:auto}.cal-date.soon .day-dot{background:var(--warning)}.cal-date.late .day-dot{background:var(--danger)}
+.calendar-under{display:grid;grid-template-columns:1.25fr 1fr;gap:13px;margin-top:14px}.calendar-detail{border-radius:12px;padding:15px;border:1px solid var(--line);background:var(--surface-2)}.calendar-detail h3{font-size:14px;margin:0 0 12px}.calendar-detail p{font-size:12px;color:var(--muted);margin:8px 0}.calendar-entry{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding:10px 0}.calendar-entry strong{font-size:13px}.calendar-entry button{font-size:11px;white-space:nowrap;padding:8px 10px}.calendar-sum{display:flex;justify-content:space-between;gap:10px;margin:10px 0;font-size:12px}.calendar-sum span{color:var(--muted)}
+@media(max-width:660px){.calendar-nav{width:100%;justify-content:space-between}.calendar-weekdays,.calendar-cells{gap:3px}.calendar-weekdays span{padding:5px 0;font-size:10px}.cal-blank,.cal-date{min-height:57px;border-radius:7px}.cal-date{padding:6px 2px;align-items:center;gap:4px}.day-num{font-size:11px}.day-price{font-size:8px;text-align:center}.day-dot{width:6px;height:6px;margin-top:1px}.calendar-under{grid-template-columns:1fr}.calendar-entry{align-items:flex-start}.calendar-detail{padding:12px}}
 </style></head><body>
 <div class="shell">
 <aside class="sidebar" aria-label="Навигация">
@@ -191,6 +197,7 @@ form .note{margin:0}
   <a class="active" href="#overview"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Обзор</span></a>
   <a href="#creditsPanel"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 9h18M16 15h2"/></svg><span>Кредиты</span></a>
   <a href="#openPanel"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2-6M3 3v6h6"/><path d="M9 12h6"/></svg><span>Без срока</span></a>
+  <a href="#calendarPanel"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg><span>Календарь</span></a>
   <a href="#paymentsPanel"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 15h4"/></svg><span>Платежи</span></a>
   <a href="#forecastPanel"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 2 5-6"/></svg><span>Прогноз</span></a>
   <a href="#backupPanel"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span>Данные</span></a>
@@ -213,6 +220,13 @@ form .note{margin:0}
   <div class="card"><div class="metric-head"><span>Долги без срока</span><span class="metric-icon">∞</span></div><strong id="openTotal">0 ₽</strong><span class="metric-caption">Не создают просроченные платежи</span></div>
  </section>
  <div class="dashboard-grid">
+<section class="panel calendar-panel" id="calendarPanel">
+<div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg></span><div><h2>Календарь платежей</h2><p class="panel-sub">Выбери день, чтобы увидеть платежи.</p></div></div>
+<div class="calendar-nav"><button id="calBack" aria-label="Предыдущий месяц">‹</button><strong id="calMonth"></strong><button id="calForward" aria-label="Следующий месяц">›</button><button id="calNow">Сегодня</button></div></div>
+<div class="calendar-legend">🟢 Оплачено　 🟡 Скоро　 🔴 Дата прошла</div>
+<div class="calendar-weekdays"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+<div id="calCells" class="calendar-cells"></div>
+<div class="calendar-under"><div id="calDayDetails" class="calendar-detail"></div><div id="calMonthStats" class="calendar-detail"></div></div></section>
   <section class="panel" id="alertsPanel" hidden><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.5 2.2 17.6a2 2 0 0 0 1.7 3h16.2a2 2 0 0 0 1.7-3L13.7 3.5a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg></span><div><h2>Требуют внимания</h2><p class="panel-sub">Сроки ближайших платежей и даты без отметки об оплате</p></div></div></div><div id="alerts"></div><p class="note" style="margin:12px 0 0">Статусы основаны на твоих отметках, а не на информации банков.</p></section>
   <section class="panel" id="creditsPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 9h18M16 15h2"/></svg></span><div><h2>Ежемесячные</h2><p class="panel-sub">Регулярные платежи с датой и суммой</p></div></div><span class="count-bubble" id="count">0</span></div><div class="stack" id="credits"></div></section>
   <section class="panel" id="openPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon" aria-hidden="true">∞</span><div><h2>Без срока погашения</h2><p class="panel-sub">Погашай в удобное время, частями или целиком</p></div></div><span class="count-bubble" id="openCount">0</span></div><div class="stack" id="openCredits"></div></section>
@@ -559,6 +573,59 @@ form .note{margin:0}
    download(new Blob([lines.join("\r\n")+"\r\n"],{type:"text/calendar;charset=utf-8"}),"moi-finansy-calendar.ics");
    alert("Экспортировано "+count+" событий. Бессрочные долги не попали в календарь. Для уведомлений импортируй файл в приложение календаря.");
  };
+;(function attachCalendar(){
+ const first=today();let month=new Date(first.getFullYear(),first.getMonth(),1),selected=first.getDate();
+ function draw(){
+  const y=month.getFullYear(),m=month.getMonth(),now=today(),rows=monthRows(y,m),map=new Map();
+  $("calMonth").textContent=month.toLocaleDateString("ru-RU",{month:"long",year:"numeric"});
+  for(const item of rows){const d=item.d.getDate();if(!map.has(d))map.set(d,[]);map.get(d).push(item)}
+  const grid=$("calCells");grid.replaceChildren();
+  for(let i=0;i<(new Date(y,m,1).getDay()+6)%7;i++)grid.append(node("div",undefined,"cal-blank"));
+  for(let day=1;day<=new Date(y,m+1,0).getDate();day++){
+   const items=map.get(day)||[],pending=items.filter(({c})=>!data.paid[paidKey(c,y,m)]);
+   const d=new Date(y,m,day),diff=dayDiff(d,now),amount=items.reduce((a,{c})=>a+c.payment,0);
+   const cell=node("button",undefined,"cal-date");cell.type="button";
+   cell.setAttribute("aria-pressed",String(day===selected));
+   cell.setAttribute("aria-label",d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"})+(items.length?" — "+money(amount):" — нет платежей"));
+   if(day===selected)cell.classList.add("selected");
+   if(day===now.getDate()&&m===now.getMonth()&&y===now.getFullYear())cell.classList.add("today");
+   cell.append(node("span",String(day),"day-num"));
+   if(items.length){
+    if(pending.length)cell.classList.add(diff<0?"late":diff<=3?"soon":"future");
+    else cell.classList.add("paid");
+    cell.append(node("span",money(amount),"day-price"),node("span",undefined,"day-dot"));
+   }
+   cell.onclick=()=>{selected=day;draw()};grid.append(cell);
+  }
+  while(grid.children.length%7)grid.append(node("div",undefined,"cal-blank"));
+  const details=$("calDayDetails");details.replaceChildren();
+  details.append(node("h3",new Date(y,m,selected).toLocaleDateString("ru-RU",{day:"numeric",month:"long",weekday:"long"})));
+  const selectedItems=map.get(selected)||[];
+  if(!selectedItems.length)details.append(node("p","На эту дату платежей нет."));
+  for(const {c} of selectedItems){
+   const key=paidKey(c,y,m),done=!!data.paid[key],entry=node("div",undefined,"calendar-entry"),left=node("div");
+   left.append(node("strong",c.name),node("p",money(c.payment)+(done?" · оплачено":" · не отмечено")));
+   const control=btn(done?"✓ Оплачено":"Отметить оплату",()=>{const old=data.paid[key];data.paid[key]=!old;if(!save())data.paid[key]=old},done?"primary":"");
+   entry.append(left,control);details.append(entry);
+  }
+  const totals=$("calMonthStats");totals.replaceChildren();totals.append(node("h3","Итоги месяца"));
+  const planned=rows.reduce((s,{c})=>s+c.payment,0),paid=rows.filter(({c})=>data.paid[paidKey(c,y,m)]).reduce((s,{c})=>s+c.payment,0);
+  for(const [name,value] of [["По графику",planned],["Отмечено оплачено",paid],["Без отметки",planned-paid]]){
+   const line=node("div",undefined,"calendar-sum");line.append(node("span",name),node("strong",money(value)));totals.append(line);
+  }
+  const progress=node("div",undefined,"progress"),bar=node("div");bar.style.width=(planned?Math.round(paid/planned*100):0)+"%";progress.append(bar);totals.append(progress);
+  totals.append(node("p","Бессрочные долги здесь не показываются."));
+ }
+ function change(n){
+  month=new Date(month.getFullYear(),month.getMonth()+n,1);const d=today(),rows=monthRows(month.getFullYear(),month.getMonth());
+  selected=d.getMonth()===month.getMonth()&&d.getFullYear()===month.getFullYear()?d.getDate():(rows[0]?.d.getDate()||1);
+  draw();
+ }
+ $("calBack").onclick=()=>change(-1);$("calForward").onclick=()=>change(1);
+ $("calNow").onclick=()=>{const d=today();month=new Date(d.getFullYear(),d.getMonth(),1);selected=d.getDate();draw()};
+ const original=render;
+ render=function(){original();draw()};
+})();
  render();
 })();
 </script>
