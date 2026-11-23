@@ -242,6 +242,15 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
 @media(max-width:900px){.sidebar{background:var(--surface)}.year-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:660px){.year-panel{padding:13px}.year-heading{align-items:flex-start;flex-direction:column;gap:12px}.year-heading h3{font-size:17px}.year-tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.year-tile{min-height:104px;padding:11px;gap:7px}.year-tile-name{font-size:12px}.year-amount{font-size:17px}.year-tile-bottom{font-size:9px}}
 
+
+#scheduleFields{display:grid;gap:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px}
+#scheduleFields[hidden],#statementFields[hidden],#kindLabel[hidden]{display:none!important}
+.event-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.event-kind{grid-column:1/-1}#eventList{display:grid;gap:7px;max-height:180px;overflow:auto}
+.event-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px;border:1px solid var(--line);border-radius:9px;font-size:11px}
+.event-item button{padding:5px 9px;font-size:11px}.kind-name{font-size:11px;color:var(--muted);margin-top:6px}
+.debt-chip{display:inline-block;font-size:10px;color:var(--accent);border:1px solid var(--line-bright);padding:4px 7px;margin:5px 0;border-radius:12px}
+@media(max-width:660px){.event-controls{grid-template-columns:1fr}.event-kind{grid-column:auto}}
 </style></head><body>
 <div class="shell">
 <aside class="sidebar" aria-label="Навигация">
@@ -290,10 +299,10 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
 <div id="calCells" class="calendar-cells"></div>
 <div class="calendar-under"><div id="calDayDetails" class="calendar-detail"></div><div id="calMonthStats" class="calendar-detail"></div></div></section>
   <section class="panel" id="alertsPanel" hidden><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.5 2.2 17.6a2 2 0 0 0 1.7 3h16.2a2 2 0 0 0 1.7-3L13.7 3.5a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg></span><div><h2>Требуют внимания</h2><p class="panel-sub">Сроки ближайших платежей и даты без отметки об оплате</p></div></div></div><div id="alerts"></div><p class="note" style="margin:12px 0 0">Статусы основаны на твоих отметках, а не на информации банков.</p></section>
-  <section class="panel" id="creditsPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 9h18M16 15h2"/></svg></span><div><h2>Ежемесячные</h2><p class="panel-sub">Регулярные платежи с датой и суммой</p></div></div><span class="count-bubble" id="count">0</span></div><div class="stack" id="credits"></div></section>
+  <section class="panel" id="creditsPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 9h18M16 15h2"/></svg></span><div><h2>Ежемесячные</h2><p class="panel-sub">Ежемесячные, переменные и карточные платежи</p></div></div><span class="count-bubble" id="count">0</span></div><div class="stack" id="credits"></div></section>
   <section class="panel" id="openPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon" aria-hidden="true">∞</span><div><h2>Без срока погашения</h2><p class="panel-sub">Погашай в удобное время, частями или целиком</p></div></div><span class="count-bubble" id="openCount">0</span></div><div class="stack" id="openCredits"></div></section>
-  <section class="panel" id="paymentsPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></svg></span><div><h2>График платежей</h2><p class="panel-sub">Только долги с ежемесячным графиком</p></div></div><select id="month" aria-label="Выберите месяц"></select></div><div class="stack" id="schedule"></div><div id="monthStats" style="margin-top:18px"></div></section>
-  <section class="panel" id="forecastPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 2 5-6"/></svg></span><div><h2>Прогноз на полгода</h2><p class="panel-sub">Как распределены будущие платежи по месяцам</p></div></div></div><div id="forecast"></div><p class="note" style="margin:10px 0 0">Прогноз строится из введённых сумм. Фактические платежи и проценты проверяй в банке.</p></section>
+  <section class="panel" id="paymentsPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></svg></span><div><h2>График платежей</h2><p class="panel-sub">Даты обязательных платежей, льготных целей и прогнозов</p></div></div><select id="month" aria-label="Выберите месяц"></select></div><div class="stack" id="schedule"></div><div id="monthStats" style="margin-top:18px"></div></section>
+  <section class="panel" id="forecastPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 2 5-6"/></svg></span><div><h2>Прогноз на полгода</h2><p class="panel-sub">Только обязательные суммы без льготных целей и прогнозов</p></div></div></div><div id="forecast"></div><p class="note" style="margin:10px 0 0">Прогноз строится из введённых сумм. Фактические платежи и проценты проверяй в банке.</p></section>
   <section class="panel" id="backupPanel"><div class="panel-head"><div class="panel-heading"><span class="section-icon"><svg viewBox="0 0 24 24" width="20" height="20" stroke-width="1.8" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v12h14V8M10 13h4"/></svg></span><div><h2>Календарь и резервные копии</h2><p class="panel-sub">Переноси данные и сохраняй напоминания в календарь</p></div></div></div><div class="toolbar"><button id="calendarExport" title="Скачать календарь с напоминаниями за 3 дня и за 1 день">Экспорт календаря .ics</button><button id="export">Скачать копию .json</button><button id="import">Восстановить из файла</button><input class="sr" type="file" accept="application/json,.json" id="file"></div><div class="data-footer"><p class="note">Данные хранятся только в этом браузере. При удалении данных сайта они могут исчезнуть — сохраняй JSON-копию. Календарный файл содержит названия и суммы платежей; не публикуй его.</p></div></section>
  </div>
  <footer class="footer"><p class="note">Мои финансы · Личный учёт без подключения к банкам</p><p class="note">Не вводи номера карт, пароли и другую секретную информацию.</p></footer>
@@ -302,15 +311,15 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
 <dialog id="editor"><form id="creditForm">
 <h2 id="formTitle">Добавить обязательство</h2>
 <input type="hidden" name="id">
-<label>Тип обязательства<select name="type" id="debtType"><option value="monthly">Ежемесячный платёж</option><option value="open">Бессрочный долг</option></select></label>
+<label>Тип обязательства<select name="type" id="debtType"><option value="monthly">Ежемесячный платёж</option><option value="open">Бессрочный долг</option><option value="custom">Индивидуальный график</option><option value="card">Кредитная карта</option></select></label>
 <label>Название<input name="name" maxlength="80" required placeholder="Например, кредит или долг человеку"></label>
 <label>Остаток долга, ₽<input name="balance" type="number" min="0" max="100000000000" step="0.01" required></label>
 <div id="monthlyFields">
 <label>Обязательный платёж в месяц, ₽<input name="payment" type="number" min="0.01" max="100000000000" step="0.01" required></label>
 <label>День платежа (1–31)<input name="day" type="number" min="1" max="31" required></label>
-<label>Дата последнего платежа (необязательно)<input name="end" type="date"></label>
+<label>Первый платёж (необязательно)<input name="start" type="date"></label><label>Дата последнего платежа (необязательно)<input name="end" type="date"></label>
 </div>
-<p class="note" id="creditHint">Ежемесячные платежи появляются в графике. Отметка «Оплачено» не меняет остаток кредита: корректируй его по данным банка.</p>
+<div id="scheduleFields" hidden><p class="note">Добавь даты и суммы по отдельности. Для карт «льготная цель» и «прогноз» не считаются обязательным ежемесячным платежом.</p><div class="event-controls"><label>Дата<input type="date" id="eventDate"></label><label>Сумма, ₽<input type="number" id="eventAmount" min="0.01" step="0.01"></label><label id="kindLabel" class="event-kind">Вид платежа<select id="eventKind"><option value="payment">Обязательный</option><option value="grace">Цель для льготного периода</option><option value="estimate">Прогноз (не подтверждён)</option></select></label></div><button id="eventAdd" type="button">Добавить дату</button><div id="eventList"></div><label id="statementFields" hidden>Следующая выписка (не срок платежа)<input id="statementDate" type="date"></label></div><p class="note" id="creditHint">Ежемесячные платежи появляются в графике. Отметка «Оплачено» не меняет остаток кредита: корректируй его по данным банка.</p>
 <menu><button type="button" id="cancel">Отмена</button><button class="primary" type="submit">Сохранить</button></menu></form></dialog>
 <dialog id="repaymentDialog"><form id="repaymentForm">
 <h2 id="repaymentTitle">Погасить долг</h2><input type="hidden" name="creditId">
@@ -336,34 +345,41 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
  const isMonthly=c=>c.type!=="open";
  const isOpen=c=>c.type==="open";
  function validate(raw){
-   if(!raw||!Array.isArray(raw.credits)||raw.credits.length>1000||!raw.paid||typeof raw.paid!=="object"||Array.isArray(raw.paid))throw Error("Некорректный файл резервной копии");
-   const seen=new Set();
-   const credits=raw.credits.map(c=>{
-     if(!c||typeof c.id!=="string"||!/^[-\w]{1,80}$/.test(c.id)||seen.has(c.id)||typeof c.name!=="string"||!c.name.trim()||c.name.length>80||!Number.isFinite(c.balance)||c.balance<0||c.balance>1e11)throw Error("Некорректная запись о долге");
-     seen.add(c.id);
-     const type=c.type??"monthly";
-     if(type!=="monthly"&&type!=="open")throw Error("Неизвестный вид долга");
-     if(type==="monthly"){
-       if(!Number.isFinite(c.payment)||c.payment<=0||c.payment>1e11||!Number.isInteger(c.day)||c.day<1||c.day>31||!(c.end==null||c.end===""||validDate(c.end)))throw Error("Неверный ежемесячный платёж");
-       return {id:c.id,name:c.name.trim(),type,balance:c.balance,payment:c.payment,day:c.day,end:c.end||""};
-     }
-     return {id:c.id,name:c.name.trim(),type,balance:c.balance,payment:0,day:0,end:""};
-   });
-   const paid={};
-   for(const [key,v] of Object.entries(raw.paid)){
-     if(!/^[-\w]{1,80}:\d{4}-\d{2}$/.test(key)||typeof v!=="boolean")throw Error("Некорректные отметки об оплате");
-     if(seen.has(key.split(":")[0]))paid[key]=v;
-   }
-   const payments=raw.repayments??[];
-   if(!Array.isArray(payments)||payments.length>20000)throw Error("Некорректная история");
-   const paymentIds=new Set();
-   const repayments=payments.map(p=>{
-     if(!p||typeof p.id!=="string"||!/^[-\w]{1,80}$/.test(p.id)||paymentIds.has(p.id)||!seen.has(p.creditId)||!Number.isFinite(p.amount)||p.amount<=0||p.amount>1e11||!validDate(p.date))throw Error("Некорректная запись погашения");
-     paymentIds.add(p.id);
-     return {id:p.id,creditId:p.creditId,amount:p.amount,date:p.date};
-   });
-   return {credits,paid,repayments};
+ if(!raw||!Array.isArray(raw.credits)||raw.credits.length>1000||!raw.paid||typeof raw.paid!=="object"||Array.isArray(raw.paid))throw Error("Некорректная резервная копия");
+ const ids=new Set();
+ const credits=raw.credits.map(c=>{
+  if(!c||typeof c.id!=="string"||!/^[-\w]{1,80}$/.test(c.id)||ids.has(c.id)||typeof c.name!=="string"||!c.name.trim()||c.name.length>80||!Number.isFinite(c.balance)||c.balance<0||c.balance>1e11)throw Error("Некорректные данные долга");
+  ids.add(c.id);const type=c.type??"monthly";
+  if(!["monthly","open","custom","card"].includes(type))throw Error("Неизвестный тип долга");
+  const base={id:c.id,name:c.name.trim(),type,balance:c.balance,payment:0,day:0,end:""};
+  if(type==="monthly"){
+   if(!Number.isFinite(c.payment)||c.payment<=0||c.payment>1e11||!Number.isInteger(c.day)||c.day<1||c.day>31||c.start&&!validDate(c.start)||c.end&&!validDate(c.end)||c.start&&c.end&&c.start>c.end)throw Error("Некорректный ежемесячный платёж");
+   return {...base,payment:c.payment,day:c.day,start:c.start||"",end:c.end||""};
+  }
+  if(type==="open")return base;
+  const arr=c.schedule??[];if(!Array.isArray(arr)||arr.length>500||(type==="custom"&&!arr.length))throw Error("Некорректный график дат");
+  const used=new Set();
+  const schedule=arr.map(e=>{
+   const kind=e?.kind??"payment";
+   if(!validDate(e?.date)||!Number.isFinite(e?.amount)||e.amount<=0||e.amount>1e11||!["payment","grace","estimate"].includes(kind)||(type==="custom"&&kind!=="payment"))throw Error("Некорректная дата/сумма/тип");
+   const k=e.date+":"+kind;if(used.has(k))throw Error("Повтор события за "+e.date);used.add(k);
+   return {date:e.date,amount:e.amount,kind};
+  }).sort((a,b)=>a.date.localeCompare(b.date)||a.kind.localeCompare(b.kind));
+  if(c.statementDate&&!validDate(c.statementDate))throw Error("Некорректная дата выписки");
+  return {...base,schedule,statementDate:type==="card"?(c.statementDate||""):""};
+ });
+ const paid={};
+ for(const [k,v] of Object.entries(raw.paid)){
+  if(typeof v!=="boolean"||!/^[-\w]{1,80}:(?:\d{4}-\d{2}|\d{4}-\d{2}-\d{2}:(?:payment|grace))$/.test(k))throw Error("Некорректная отметка оплаты");
+  if(ids.has(k.split(":")[0]))paid[k]=v;
  }
+ const entries=raw.repayments??[];if(!Array.isArray(entries)||entries.length>20000)throw Error("Некорректная история");
+ const rids=new Set(),repayments=entries.map(p=>{
+  if(!p||typeof p.id!=="string"||!/^[-\w]{1,80}$/.test(p.id)||rids.has(p.id)||!ids.has(p.creditId)||!Number.isFinite(p.amount)||p.amount<=0||p.amount>1e11||!validDate(p.date))throw Error("Некорректная история погашений");
+  rids.add(p.id);return {id:p.id,creditId:p.creditId,amount:p.amount,date:p.date};
+ });
+ return {credits,paid,repayments};
+}
  let data;
  let storageError=false;
  try{const s=localStorage.getItem(KEY);data=s?validate(JSON.parse(s)):{credits:[],paid:{},repayments:[]}}
@@ -377,49 +393,78 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
    catch(err){alert("Не удалось сохранить данные на устройстве: "+err.message);return false}
  }
  const due=(c,y,m)=>new Date(y,m,Math.min(c.day,new Date(y,m+1,0).getDate()));
- const isActive=(c,d)=>isMonthly(c)&&c.balance>0&&(!c.end||d<=new Date(c.end+"T23:59:59"));
- const paidKey=(c,y,m)=>`${c.id}:${monthKey(y,m)}`;
- const monthRows=(y,m)=>data.credits.filter(isMonthly).map(c=>({c,d:due(c,y,m)})).filter(({c,d})=>isActive(c,d)).sort((a,b)=>a.d-b.d);
- const dayDiff=(a,b)=>Math.round((Date.UTC(a.getFullYear(),a.getMonth(),a.getDate())-Date.UTC(b.getFullYear(),b.getMonth(),b.getDate()))/86400000);
+ const isActive=(c,d)=>c.type==="monthly"&&c.balance>0&&(!c.start||localDate(d)>=c.start)&&(!c.end||localDate(d)<=c.end);
+ const paidKey=(c,y,m)=>c.id+":"+monthKey(y,m);
+ const kindText=k=>k==="grace"?"Цель льготного периода":k==="estimate"?"Предварительный прогноз":"Обязательный платёж";
+ const monthRows=(y,m)=>{
+  const prefix=monthKey(y,m),rows=[];
+  for(const c of data.credits){
+   if(c.balance<=0)continue;
+   if(c.type==="monthly"){
+    const d=due(c,y,m);if(isActive(c,d))rows.push({c,d,amount:c.payment,key:paidKey(c,y,m),kind:"payment"});
+   }else if(c.type==="custom"||c.type==="card"){
+    for(const e of c.schedule||[])if(e.date.startsWith(prefix))rows.push({c,d:new Date(e.date+"T12:00:00"),amount:e.amount,kind:e.kind,key:c.id+":"+e.date+":"+e.kind});
+   }
+  }
+  return rows.sort((a,b)=>a.d-b.d||a.c.name.localeCompare(b.c.name));
+ };
+ const obligated=r=>r.kind==="payment";
+ const sumRequired=rows=>rows.filter(obligated).reduce((s,r)=>s+r.amount,0);
+ const sumMarked=rows=>sumRequired(rows.filter(r=>data.paid[r.key]));
+  const dayDiff=(a,b)=>Math.round((Date.UTC(a.getFullYear(),a.getMonth(),a.getDate())-Date.UTC(b.getFullYear(),b.getMonth(),b.getDate()))/86400000);
  const currentMonth=()=>{const d=today();return [d.getFullYear(),d.getMonth()]};
  const originalTypes=["monthly","open"];
  const modal=$("editor"),form=$("creditForm"),monthlyFields=$("monthlyFields");
- const syncType=()=>{
-   const open=form.elements.type.value==="open";
-   monthlyFields.hidden=open;
-   form.elements.payment.required=!open;
-   form.elements.day.required=!open;
-   $("creditHint").textContent=open?"Бессрочный долг не имеет даты обязательного платежа и не считается просроченным. Погашение можно записывать частями.":"Ежемесячные платежи попадают в график. Отметка «Оплачено» не уменьшает остаток кредита — обновляй его по данным банка.";
- };
- $("debtType").onchange=syncType;
- function edit(c){
-   form.reset();
-   form.elements.id.value=c?.id||"";
-   form.elements.type.value=c?.type||"monthly";
-   form.elements.name.value=c?.name||"";
-   form.elements.balance.value=c?.balance??"";
-   form.elements.payment.value=isMonthly(c||{type:"monthly"})?(c?.payment??""):"";
-   form.elements.day.value=isMonthly(c||{type:"monthly"})?(c?.day??""):"";
-   form.elements.end.value=c?.end||"";
-   $("formTitle").textContent=c?"Изменить обязательство":"Добавить обязательство";
-   syncType();
-   modal.showModal();
+ let draft=[];
+ function drawDraft(){
+  const root=$("eventList");root.replaceChildren();
+  if(!draft.length){root.append(node("p","Нет дат в графике","note"));return}
+  for(const [index,e] of draft.entries()){
+   const line=node("div",undefined,"event-item");
+   line.append(node("span",e.date+" · "+money(e.amount)+" · "+kindText(e.kind)));
+   line.append(btn("Убрать",()=>{draft.splice(index,1);drawDraft()},"danger"));root.append(line);
+  }
  }
- $("add").onclick=()=>edit(null);
- $("cancel").onclick=()=>modal.close();
+ function syncType(){
+  const type=form.elements.type.value;
+  monthlyFields.hidden=type!=="monthly";
+  $("scheduleFields").hidden=type!=="custom"&&type!=="card";
+  $("statementFields").hidden=type!=="card";$("kindLabel").hidden=type!=="card";
+  if(type==="custom")$("eventKind").value="payment";
+  form.elements.payment.required=type==="monthly";form.elements.day.required=type==="monthly";
+  $("creditHint").textContent=type==="open"?"Долг без обязательной даты. Погашение частями уменьшает остаток.":type==="card"?"Кредитная карта: цели по льготному периоду и прогнозы показываются отдельно от обязательных платежей.":type==="custom"?"Укажи каждую дату и сумму: они появятся в календаре без автоповторения.":"Одинаковый платёж каждый месяц. Отметка оплаты не меняет остаток.";
+  drawDraft();
+ }
+ $("debtType").onchange=syncType;
+ $("eventAdd").onclick=()=>{
+  const date=$("eventDate").value,amount=Number($("eventAmount").value),kind=form.elements.type.value==="card"?$("eventKind").value:"payment";
+  if(!validDate(date)||!Number.isFinite(amount)||amount<=0||amount>1e11){alert("Укажи дату и корректную сумму.");return}
+  if(draft.some(e=>e.date===date&&e.kind===kind)){alert("Такое событие уже есть. Удали и добавь заново.");return}
+  if(draft.length>=500){alert("Максимум 500 событий.");return}
+  draft.push({date,amount,kind});draft.sort((a,b)=>a.date.localeCompare(b.date)||a.kind.localeCompare(b.kind));
+  $("eventDate").value="";$("eventAmount").value="";drawDraft();
+ };
+ function edit(c){
+  form.reset();form.elements.id.value=c?.id||"";
+  form.elements.type.value=c?.type||"monthly";form.elements.name.value=c?.name||"";
+  form.elements.balance.value=c?.balance??"";
+  form.elements.payment.value=c?.type==="monthly"?c.payment:"";
+  form.elements.day.value=c?.type==="monthly"?c.day:"";
+  form.elements.start.value=c?.start||"";form.elements.end.value=c?.end||"";
+  $("statementDate").value=c?.statementDate||"";
+  draft=(c?.schedule||[]).map(e=>({...e}));
+  $("formTitle").textContent=c?"Изменить обязательство":"Добавить обязательство";syncType();modal.showModal();
+ }
+ $("add").onclick=()=>edit(null);$("cancel").onclick=()=>modal.close();
  form.onsubmit=e=>{
-   e.preventDefault();
-   const f=e.currentTarget;
-   const id=f.elements.id.value||("c"+Date.now().toString(36)+Math.random().toString(36).slice(2,9));
-   const type=f.elements.type.value;
-   const c={id,type,name:f.elements.name.value.trim(),balance:Number(f.elements.balance.value),payment:type==="monthly"?Number(f.elements.payment.value):0,day:type==="monthly"?Number(f.elements.day.value):0,end:type==="monthly"?f.elements.end.value:""};
-   try{validate({credits:[c],paid:{},repayments:[]})}catch(err){alert(err.message);return}
-   const old=data.credits.findIndex(x=>x.id===id);
-   const snapshot=JSON.stringify(data);
-   if(old<0)data.credits.push(c);
-   else data.credits[old]=c;
-   if(save())modal.close();
-   else data=JSON.parse(snapshot);
+  e.preventDefault();const f=e.currentTarget,id=f.elements.id.value||("c"+Date.now().toString(36)+Math.random().toString(36).slice(2,9)),type=f.elements.type.value;
+  let c={id,type,name:f.elements.name.value.trim(),balance:Number(f.elements.balance.value)};
+  if(type==="monthly")Object.assign(c,{payment:Number(f.elements.payment.value),day:Number(f.elements.day.value),start:f.elements.start.value,end:f.elements.end.value});
+  if(type==="custom"||type==="card")Object.assign(c,{schedule:draft.map(e=>({...e})),statementDate:type==="card"?$("statementDate").value:""});
+  try{c=validate({credits:[c],paid:{},repayments:[]}).credits[0]}catch(err){alert(err.message);return}
+  const i=data.credits.findIndex(x=>x.id===id),old=JSON.stringify(data);
+  if(i<0)data.credits.push(c);else data.credits[i]=c;
+  if(save())modal.close();else data=JSON.parse(old);
  };
  function deleteCredit(c){
    if(!confirm(`Удалить «${c.name}» вместе со всеми отметками и историей погашений?`))return;
@@ -459,134 +504,109 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
    if(!save())data=JSON.parse(snapshot);
  }
  function showCredits(){
-   const monthlyRoot=$("credits"),openRoot=$("openCredits");
-   monthlyRoot.replaceChildren();openRoot.replaceChildren();
-   const monthly=data.credits.filter(isMonthly),open=data.credits.filter(isOpen);
-   $("count").textContent=String(monthly.length);
-   $("openCount").textContent=String(open.length);
-   if(!monthly.length)monthlyRoot.append(node("div","Пока нет ежемесячных платежей. Добавь первый, чтобы увидеть график.","empty"));
-   if(!open.length)openRoot.append(node("div","Бессрочных долгов пока нет. Они будут здесь, без дат и просрочек.","empty"));
-   for(const c of monthly){
-     const item=node("div",undefined,"item"),left=node("div"),actions=node("div",undefined,"actions");
-     left.append(node("strong",c.name),node("p",`${money(c.balance)} остаток · ${money(c.payment)} в месяц · ${c.day}-е число`,"muted"));
-     if(c.end)left.append(node("p","Последний платёж по плану: "+c.end,"note"));
-     actions.append(btn("Изменить",()=>edit(c)),btn("Удалить",()=>deleteCredit(c),"danger"));
-     item.append(left,actions);monthlyRoot.append(item);
-   }
-   for(const c of open){
-     const item=node("div",undefined,"item"),left=node("div"),actions=node("div",undefined,"actions");
-     const pill=node("span",c.balance>0?"Без срока":"Погашен","debt-pill open");
-     const line=node("div",undefined,"debt-meta");line.append(pill);
-     left.append(node("strong",c.name),node("p","Остаток: "+money(c.balance),"muted"),line);
-     const records=data.repayments.filter(p=>p.creditId===c.id).sort((a,b)=>b.date.localeCompare(a.date));
-     if(records.length){
-       const history=node("div",undefined,"manual-history");
-       history.append(node("span",`История: ${records.length} погашений`));
-       for(const p of records.slice(0,4)){
-         const r=node("div",`${p.date} · −${money(p.amount)}`);
-         r.append(btn("Отменить",()=>undoRepayment(c,p)));
-         history.append(r);
-       }
-       if(records.length>4)history.append(node("div",`Ещё ${records.length-4} операций в резервной копии`));
-       left.append(history);
-     }
-     if(c.balance>0)actions.append(btn("Погасить часть",()=>pay(c),"primary"));
-     actions.append(btn("Изменить",()=>edit(c)),btn("Удалить",()=>deleteCredit(c),"danger"));
-     item.append(left,actions);openRoot.append(item);
-   }
+ const regular=$("credits"),openRoot=$("openCredits");regular.replaceChildren();openRoot.replaceChildren();
+ const nonOpen=data.credits.filter(c=>c.type!=="open"),open=data.credits.filter(isOpen);
+ $("count").textContent=String(nonOpen.length);$("openCount").textContent=String(open.length);
+ if(!nonOpen.length)regular.append(node("div","Пока нет графиков платежей.","empty"));
+ if(!open.length)openRoot.append(node("div","Бессрочных долгов пока нет.","empty"));
+ for(const c of nonOpen){
+  const item=node("div",undefined,"item"),left=node("div"),actions=node("div",undefined,"actions");
+  left.append(node("strong",c.name),node("span",c.type==="monthly"?"Ежемесячно":c.type==="card"?"Кредитная карта":"Разные суммы","debt-chip"));
+  let detail="Остаток: "+money(c.balance);
+  detail+=c.type==="monthly"?" · "+money(c.payment)+"/мес · "+c.day+"-е число":" · "+(c.schedule?.length||0)+" событий";
+  left.append(node("p",detail,"muted"));
+  if(c.start||c.end)left.append(node("p","Период: "+(c.start||"не задан")+" — "+(c.end||"не задан"),"note"));
+  if(c.statementDate)left.append(node("p","Следующая выписка: "+c.statementDate+" (не срок платежа)","note"));
+  actions.append(btn("Изменить",()=>edit(c)),btn("Удалить",()=>deleteCredit(c),"danger"));
+  item.append(left,actions);regular.append(item);
  }
+ for(const c of open){
+  const item=node("div",undefined,"item"),left=node("div"),actions=node("div",undefined,"actions");
+  const line=node("div",undefined,"debt-meta");line.append(node("span",c.balance>0?"Без срока":"Погашен","debt-pill open"));
+  left.append(node("strong",c.name),node("p","Остаток: "+money(c.balance),"muted"),line);
+  const records=data.repayments.filter(p=>p.creditId===c.id).sort((a,b)=>b.date.localeCompare(a.date));
+  if(records.length){
+   const history=node("div",undefined,"manual-history");history.append(node("span",records.length+" погашений"));
+   for(const p of records.slice(0,4)){const rr=node("div",p.date+" · −"+money(p.amount));rr.append(btn("Отменить",()=>undoRepayment(c,p)));history.append(rr)}
+   left.append(history);
+  }
+  if(c.balance>0)actions.append(btn("Погасить часть",()=>pay(c),"primary"));
+  actions.append(btn("Изменить",()=>edit(c)),btn("Удалить",()=>deleteCredit(c),"danger"));
+  item.append(left,actions);openRoot.append(item);
+ }
+}
  function renderSchedule(){
-   const [y,m]=($("month").value||monthKey(...currentMonth())).split("-").map(Number),mm=m-1;
-   const rows=monthRows(y,mm),root=$("schedule");root.replaceChildren();
-   const planned=rows.reduce((s,{c})=>s+c.payment,0);
-   const paidRows=rows.filter(({c})=>data.paid[paidKey(c,y,mm)]);
-   const settled=paidRows.reduce((s,{c})=>s+c.payment,0);
-   if(!rows.length)root.append(node("div","В этом месяце нет платежей по графику. Бессрочные долги здесь не показываются.","empty"));
-   for(const {c,d} of rows){
-     const key=paidKey(c,y,mm),checked=!!data.paid[key],item=node("div",undefined,"item"),left=node("div"),dateText=d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"});
-     left.append(node("strong",`${dateText} · ${c.name}`),node("p",money(c.payment),"muted"));
-     if(!checked){
-       const days=dayDiff(d,today());
-       let alertText="";
-       if(days<0)alertText="Дата прошла · оплата не отмечена";
-       else if(days===0)alertText="Срок сегодня";
-       else if(days<=3)alertText=`Через ${days} дн.`;
-       if(alertText)left.append(node("div",alertText,days<0?"state-past":"state-soon"));
-     }
-     const action=btn(checked?"✓ Оплачено":"Отметить оплату",()=>{
-       const previous=data.paid[key];
-       data.paid[key]=!previous;
-       if(!save())data.paid[key]=previous;
-     },checked?"primary":"");
-     item.append(left,action);root.append(item);
-   }
-   const stats=$("monthStats");stats.replaceChildren();
-   const grid=node("div",undefined,"stat-grid");
-   for(const [label,value] of [["Запланировано",planned],["Отмечено оплачено",settled],["Осталось отметить",planned-settled]]){
-     const box=node("div",undefined,"stat-cell");
-     box.append(node("span",label),node("strong",money(value)));grid.append(box);
-   }
-   const track=node("div",undefined,"progress"),fill=node("div");
-   const pct=planned?Math.round(settled/planned*100):0;
-   fill.style.width=Math.min(100,pct)+"%";track.append(fill);
-   stats.append(grid,track,node("p",`${paidRows.length} из ${rows.length} платежей отмечено · ${pct}% по сумме`,"note"));
+ const [y,mon]=($("month").value||monthKey(...currentMonth())).split("-").map(Number),m=mon-1;
+ const rows=monthRows(y,m),root=$("schedule");root.replaceChildren();
+ if(!rows.length)root.append(node("div","На этот месяц нет платежей по графику.","empty"));
+ for(const row of rows){
+  const {c,d,key,kind,amount}=row,done=!!data.paid[key],item=node("div",undefined,"item"),left=node("div");
+  left.append(node("strong",d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"})+" · "+c.name),node("p",money(amount)+" · "+kindText(kind),"muted"));
+  if(kind!=="estimate"&&!done){
+   const days=dayDiff(d,today());
+   if(days<=3)left.append(node("div",days<0?(kind==="grace"?"Дата льготной цели прошла":"Дата платежа прошла, не отмечено"):days===0?"Сегодня":"Через "+days+" дн.",days<0?"state-past":"state-soon"));
+  }
+  item.append(left);
+  if(kind==="estimate")item.append(node("span","Ожидает подтверждения","kind-name"));
+  else item.append(btn(done?(kind==="grace"?"✓ Цель выполнена":"✓ Оплачено"):(kind==="grace"?"Отметить цель":"Отметить оплату"),()=>{
+   const old=data.paid[key];data.paid[key]=!old;if(!save())data.paid[key]=old;
+  },done?"primary":""));
+  root.append(item);
  }
+ const planned=sumRequired(rows),settled=sumMarked(rows),stats=$("monthStats");stats.replaceChildren();
+ const grid=node("div",undefined,"stat-grid");
+ for(const [title,amount] of [["Обязательно",planned],["Отмечено оплачено",settled],["Без отметки",planned-settled]]){
+  const cell=node("div",undefined,"stat-cell");cell.append(node("span",title),node("strong",money(amount)));grid.append(cell);
+ }
+ const progress=node("div",undefined,"progress"),bar=node("div");bar.style.width=(planned?Math.round(settled/planned*100):0)+"%";progress.append(bar);
+ stats.append(grid,progress,node("p","Льготные цели и прогнозы не входят в суммы обязательных платежей.","note"));
+}
  function renderAlerts(){
-   const root=$("alerts");root.replaceChildren();
-   const now=today(),items=[];
-   for(let off=0;off<=1;off++){
-     const first=new Date(now.getFullYear(),now.getMonth()+off,1),y=first.getFullYear(),m=first.getMonth();
-     for(const {c,d} of monthRows(y,m)){
-       if(data.paid[paidKey(c,y,m)])continue;
-       const days=dayDiff(d,now);
-       if(days<=3&&(days>=0||off===0))items.push({c,d,days});
-     }
-   }
-   items.sort((a,b)=>a.days-b.days);
-   $("alertsPanel").hidden=items.length===0;
-   for(const {c,d,days} of items.slice(0,12)){
-     const line=node("div",undefined,"alert-line"),left=node("div");
-     const label=days<0?"Дата прошла, оплата не отмечена":days===0?"Срок сегодня":`Через ${days} дн.`;
-     left.append(node("strong",c.name),node("p",d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"})+" · "+label,"note"));
-     line.append(left,node("strong",money(c.payment),days<0?"state-past":""));root.append(line);
-   }
-   if(items.length>12)root.append(node("p",`И ещё ${items.length-12} платежей`,"note"));
+ const root=$("alerts");root.replaceChildren(),now=today(),arr=[];
+ for(let offset=0;offset<=1;offset++){
+  const dt=new Date(now.getFullYear(),now.getMonth()+offset,1);
+  for(const row of monthRows(dt.getFullYear(),dt.getMonth())){
+   const days=dayDiff(row.d,now);
+   if(row.kind!=="estimate"&&!data.paid[row.key]&&days<=3&&(days>=0||offset===0))arr.push({...row,days});
+  }
  }
+ arr.sort((a,b)=>a.days-b.days);$("alertsPanel").hidden=!arr.length;
+ for(const row of arr.slice(0,12)){
+  const line=node("div",undefined,"alert-line"),left=node("div"),status=row.days<0?"Дата прошла, нет отметки":row.days===0?"Сегодня":"Через "+row.days+" дн.";
+  left.append(node("strong",row.c.name),node("p",row.d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"})+" · "+kindText(row.kind)+" · "+status,"note"));
+  line.append(left,node("strong",money(row.amount),row.days<0?"state-past":""));root.append(line);
+ }
+}
  function renderForecast(){
-   const root=$("forecast");root.replaceChildren();
-   const now=today(),rows=[];
-   for(let offset=0;offset<6;offset++){
-     const d=new Date(now.getFullYear(),now.getMonth()+offset,1),y=d.getFullYear(),m=d.getMonth(),list=monthRows(y,m);
-     rows.push({d,planned:list.reduce((s,{c})=>s+c.payment,0),unmarked:list.filter(({c})=>!data.paid[paidKey(c,y,m)]).reduce((s,{c})=>s+c.payment,0)});
-   }
-   const biggest=Math.max(1,...rows.map(r=>r.planned));
-   for(const r of rows){
-     const line=node("div",undefined,"forecast-line"),head=node("div",undefined,"forecast-head");
-     head.append(node("span",r.d.toLocaleDateString("ru-RU",{month:"long",year:"numeric"})),node("strong",money(r.planned)));
-     const track=node("div",undefined,"forecast-track"),bar=node("div");
-     bar.style.width=(r.planned/biggest*100)+"%";track.append(bar);line.append(head,track);
-     if(r.d.getFullYear()===now.getFullYear()&&r.d.getMonth()===now.getMonth())line.append(node("div","Не отмечено: "+money(r.unmarked),"note"));
-     root.append(line);
-   }
+ const root=$("forecast");root.replaceChildren(),now=today(),rows=[];
+ for(let i=0;i<6;i++){
+  const d=new Date(now.getFullYear(),now.getMonth()+i,1),all=monthRows(d.getFullYear(),d.getMonth());
+  rows.push({d,planned:sumRequired(all),unmarked:sumRequired(all.filter(r=>!data.paid[r.key]))});
  }
+ const max=Math.max(1,...rows.map(r=>r.planned));
+ for(const r of rows){
+  const line=node("div",undefined,"forecast-line"),header=node("div",undefined,"forecast-head");
+  header.append(node("span",r.d.toLocaleDateString("ru-RU",{month:"long",year:"numeric"})),node("strong",money(r.planned)));
+  const barBg=node("div",undefined,"forecast-track"),bar=node("div");bar.style.width=(r.planned/max*100)+"%";barBg.append(bar);line.append(header,barBg);
+  if(r.d.getMonth()===now.getMonth()&&r.d.getFullYear()===now.getFullYear())line.append(node("div","Не отмечено: "+money(r.unmarked),"note"));
+  root.append(line);
+ }
+}
  function render(){
-   const now=today(),y=now.getFullYear(),m=now.getMonth();
-   const monthly=monthRows(y,m);
-   const outstanding=monthly.filter(({c})=>!data.paid[paidKey(c,y,m)]).reduce((sum,{c})=>sum+c.payment,0);
-   const openBalance=data.credits.filter(isOpen).reduce((sum,c)=>sum+c.balance,0);
-   $("total").textContent=money(data.credits.reduce((s,c)=>s+c.balance,0));
-   $("openTotal").textContent=money(openBalance);
-   $("monthly").textContent=money(outstanding);
-   let upcoming=[];
-   for(let off=0;off<24;off++){
-     const dt=new Date(y,m+off,1),yy=dt.getFullYear(),mm=dt.getMonth();
-     const found=monthRows(yy,mm).filter(({c,d})=>!data.paid[paidKey(c,yy,mm)]&&(off>0||dayDiff(d,now)>=0));
-     if(found.length){upcoming=found;break}
-   }
-   $("next").textContent=upcoming.length?upcoming[0].d.toLocaleDateString("ru-RU",{day:"numeric",month:"short"}):"—";
-   $("nextLabel").textContent=upcoming.length?upcoming[0].c.name:"Нет ближайших платежей";
-   showCredits();renderSchedule();renderAlerts();renderForecast();
+ const now=today(),y=now.getFullYear(),m=now.getMonth(),thisMonth=monthRows(y,m);
+ $("total").textContent=money(data.credits.reduce((s,c)=>s+c.balance,0));
+ $("openTotal").textContent=money(data.credits.filter(isOpen).reduce((s,c)=>s+c.balance,0));
+ $("monthly").textContent=money(sumRequired(thisMonth.filter(r=>!data.paid[r.key])));
+ let upcoming=[];
+ for(let i=0;i<24;i++){
+  const d=new Date(y,m+i,1);
+  const next=monthRows(d.getFullYear(),d.getMonth()).filter(r=>r.kind!=="estimate"&&!data.paid[r.key]&&(i>0||dayDiff(r.d,now)>=0));
+  if(next.length){upcoming=next;break}
  }
+ $("next").textContent=upcoming.length?upcoming[0].d.toLocaleDateString("ru-RU",{day:"numeric",month:"short"}):"—";
+ $("nextLabel").textContent=upcoming.length?upcoming[0].c.name+(upcoming[0].kind==="grace"?" · льготная цель":""):"Нет ближайших платежей";
+ showCredits();renderSchedule();renderAlerts();renderForecast();
+}
  const select=$("month"),now=today();
  for(let i=-3;i<24;i++){
    const d=new Date(now.getFullYear(),now.getMonth()+i,1),option=node("option",d.toLocaleDateString("ru-RU",{month:"long",year:"numeric"}));
@@ -617,24 +637,24 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
  const icsEscape=s=>String(s).replace(/\\/g,"\\\\").replace(/\n/g,"\\n").replace(/;/g,"\\;").replace(/,/g,"\\,");
  const calDate=d=>`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
  $("calendarExport").onclick=()=>{
-   const now=today(),stamp=now.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
-   const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Moi Finances//Payments//RU","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:Мои финансы — ежемесячные платежи"];
-   let count=0;
-   for(let off=0;off<12;off++){
-     const dt=new Date(now.getFullYear(),now.getMonth()+off,1),y=dt.getFullYear(),m=dt.getMonth();
-     for(const {c,d} of monthRows(y,m)){
-       if(dayDiff(d,now)<0||data.paid[paidKey(c,y,m)])continue;
-       const end=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1);
-       lines.push("BEGIN:VEVENT","UID:"+c.id+"-"+calDate(d)+"@moi-finansy.local","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+calDate(d),"DTEND;VALUE=DATE:"+calDate(end),"SUMMARY:"+icsEscape("Платёж: "+c.name),"DESCRIPTION:"+icsEscape("Плановый платёж: "+money(c.payment)+". Уточни сумму и дату в банке."));
-       for(const days of [3,1])lines.push("BEGIN:VALARM","ACTION:DISPLAY","TRIGGER:-P"+days+"D","DESCRIPTION:"+icsEscape("Скоро платёж: "+c.name),"END:VALARM");
-       lines.push("END:VEVENT");count++;
-     }
-   }
-   if(!count){alert("Нет будущих ежемесячных платежей для календаря.");return}
-   lines.push("END:VCALENDAR");
-   download(new Blob([lines.join("\r\n")+"\r\n"],{type:"text/calendar;charset=utf-8"}),"moi-finansy-calendar.ics");
-   alert("Экспортировано "+count+" событий. Бессрочные долги не попали в календарь. Для уведомлений импортируй файл в приложение календаря.");
- };
+ const now=today(),stamp=now.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+ const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//MoiFinances//RU","CALSCALE:GREGORIAN","X-WR-CALNAME:Мои финансы"];
+ let count=0;
+ for(let i=0;i<12;i++){
+  const d=new Date(now.getFullYear(),now.getMonth()+i,1);
+  for(const row of monthRows(d.getFullYear(),d.getMonth())){
+   if(row.kind==="estimate"||data.paid[row.key]||dayDiff(row.d,now)<0)continue;
+   const next=new Date(row.d.getFullYear(),row.d.getMonth(),row.d.getDate()+1);
+   const title=(row.kind==="grace"?"Льготная цель: ":"Платёж: ")+row.c.name;
+   lines.push("BEGIN:VEVENT","UID:"+row.key.replace(/[^a-zA-Z0-9-]/g,"-")+"@moi-finansy.local","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+calDate(row.d),"DTEND;VALUE=DATE:"+calDate(next),"SUMMARY:"+icsEscape(title),"DESCRIPTION:"+icsEscape(kindText(row.kind)+": "+money(row.amount)));
+   for(const days of [3,1])lines.push("BEGIN:VALARM","ACTION:DISPLAY","TRIGGER:-P"+days+"D","DESCRIPTION:"+icsEscape(title),"END:VALARM");
+   lines.push("END:VEVENT");count++;
+  }
+ }
+ if(!count){alert("Нет событий для экспорта.");return}
+ lines.push("END:VCALENDAR");download(new Blob([lines.join("\r\n")+"\r\n"],{type:"text/calendar;charset=utf-8"}),"moi-finansy-calendar.ics");
+ alert("Экспортировано "+count+" событий. Файл содержит личные финансовые сведения, не публикуй его.");
+};
 ;(function attachCalendar(){
  const first=today();let month=new Date(first.getFullYear(),first.getMonth(),1),selected=first.getDate();
  function draw(){
@@ -644,18 +664,16 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
   const grid=$("calCells");grid.replaceChildren();
   for(let i=0;i<(new Date(y,m,1).getDay()+6)%7;i++)grid.append(node("div",undefined,"cal-blank"));
   for(let day=1;day<=new Date(y,m+1,0).getDate();day++){
-   const items=map.get(day)||[],pending=items.filter(({c})=>!data.paid[paidKey(c,y,m)]);
-   const d=new Date(y,m,day),diff=dayDiff(d,now),amount=items.reduce((a,{c})=>a+c.payment,0);
-   const cell=node("button",undefined,"cal-date");cell.type="button";
-   cell.setAttribute("aria-pressed",String(day===selected));
-   cell.setAttribute("aria-label",d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"})+(items.length?" — "+money(amount):" — нет платежей"));
+   const items=map.get(day)||[],active=items.filter(r=>r.kind!=="estimate"),pending=active.filter(r=>!data.paid[r.key]);
+   const d=new Date(y,m,day),diff=dayDiff(d,now),amount=sumRequired(items),goal=items.filter(r=>r.kind==="grace").reduce((s,r)=>s+r.amount,0);
+   const cell=node("button",undefined,"cal-date");cell.type="button";cell.setAttribute("aria-pressed",String(day===selected));
+   cell.setAttribute("aria-label",d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"})+" · "+items.length+" событий");
    if(day===selected)cell.classList.add("selected");
    if(day===now.getDate()&&m===now.getMonth()&&y===now.getFullYear())cell.classList.add("today");
    cell.append(node("span",String(day),"day-num"));
    if(items.length){
-    if(pending.length)cell.classList.add(diff<0?"late":diff<=3?"soon":"future");
-    else cell.classList.add("paid");
-    cell.append(node("span",money(amount),"day-price"),node("span",undefined,"day-dot"));
+    if(pending.length)cell.classList.add(diff<0?"late":diff<=3?"soon":"future");else cell.classList.add("paid");
+    cell.append(node("span",amount?money(amount):goal?"Цель "+money(goal):"Прогноз","day-price"),node("span",undefined,"day-dot"));
    }
    cell.onclick=()=>{selected=day;draw()};grid.append(cell);
   }
@@ -664,14 +682,17 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
   details.append(node("h3",new Date(y,m,selected).toLocaleDateString("ru-RU",{day:"numeric",month:"long",weekday:"long"})));
   const selectedItems=map.get(selected)||[];
   if(!selectedItems.length)details.append(node("p","На эту дату платежей нет."));
-  for(const {c} of selectedItems){
-   const key=paidKey(c,y,m),done=!!data.paid[key],entry=node("div",undefined,"calendar-entry"),left=node("div");
-   left.append(node("strong",c.name),node("p",money(c.payment)+(done?" · оплачено":" · не отмечено")));
-   const control=btn(done?"✓ Оплачено":"Отметить оплату",()=>{const old=data.paid[key];data.paid[key]=!old;if(!save())data.paid[key]=old},done?"primary":"");
-   entry.append(left,control);details.append(entry);
+  for(const row of selectedItems){
+   const {c,key,kind,amount}=row,done=!!data.paid[key],entry=node("div",undefined,"calendar-entry"),left=node("div");
+   left.append(node("strong",c.name),node("p",money(amount)+" · "+kindText(kind)+(done?" · отмечено":"")));
+   if(kind!=="estimate")entry.append(left,btn(done?"✓ Выполнено":kind==="grace"?"Отметить цель":"Отметить оплату",()=>{
+    const old=data.paid[key];data.paid[key]=!old;if(!save())data.paid[key]=old;
+   },done?"primary":""));
+   else entry.append(left,node("span","Прогноз","kind-name"));
+   details.append(entry);
   }
   const totals=$("calMonthStats");totals.replaceChildren();totals.append(node("h3","Итоги месяца"));
-  const planned=rows.reduce((s,{c})=>s+c.payment,0),paid=rows.filter(({c})=>data.paid[paidKey(c,y,m)]).reduce((s,{c})=>s+c.payment,0);
+  const planned=sumRequired(rows),paid=sumMarked(rows);
   for(const [name,value] of [["По графику",planned],["Отмечено оплачено",paid],["Без отметки",planned-paid]]){
    const line=node("div",undefined,"calendar-sum");line.append(node("span",name),node("strong",money(value)));totals.append(line);
   }
@@ -694,11 +715,11 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
     const now=today();
     for(let m=0;m<12;m++){
       const rows=monthRows(overviewYear,m);
-      const amount=rows.reduce((s,{c})=>s+c.payment,0);
-      const paidRows=rows.filter(({c})=>data.paid[paidKey(c,overviewYear,m)]);
-      const paid=paidRows.reduce((s,{c})=>s+c.payment,0);
+      const amount=sumRequired(rows);
+      const paidRows=rows.filter(r=>obligated(r)&&data.paid[r.key]);
+      const paid=paidRows.reduce((s,r)=>s+r.amount,0);
       const notMarked=amount-paid;
-      const isOverdue=rows.some(({c,d})=>!data.paid[paidKey(c,overviewYear,m)]&&dayDiff(d,now)<0);
+      const isOverdue=rows.some(r=>obligated(r)&&!data.paid[r.key]&&dayDiff(r.d,now)<0);
       const el=node("button",undefined,"year-tile");
       el.type="button";
       const active=month.getFullYear()===overviewYear&&month.getMonth()===m;
@@ -710,9 +731,9 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
       el.setAttribute("aria-label",name+" "+overviewYear+": "+(rows.length?rows.length+" платежей на "+money(amount):"нет платежей"));
       const head=node("span",undefined,"year-tile-head");
       head.append(node("span",name,"year-tile-name"),node("span",undefined,"year-dot"));
-      const value=node("strong",rows.length?money(amount):"Нет платежей","year-amount");
+      const value=node("strong",rows.length?(amount?money(amount):"Без обязательных"):"Нет событий","year-amount");
       const bottom=node("span",undefined,"year-tile-bottom");
-      bottom.append(node("span",rows.length?rows.length+" платежей":"Свободно"),node("span",rows.length?"Осталось "+money(notMarked):""));
+      bottom.append(node("span",rows.length?rows.length+" событий":"Свободно"),node("span",amount?"Осталось "+money(notMarked):""));
       const track=node("span",undefined,"year-progress"),fill=node("span");
       fill.style.width=(amount?Math.round(paid/amount*100):0)+"%";track.append(fill);
       el.append(head,value,bottom,track);
