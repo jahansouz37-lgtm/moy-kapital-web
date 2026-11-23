@@ -584,7 +584,7 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
  stats.append(grid,progress,node("p","Льготные цели и прогнозы не входят в суммы обязательных платежей.","note"));
 }
  function renderAlerts(){
- const root=$("alerts");root.replaceChildren(),now=today(),arr=[];
+ const root=$("alerts");root.replaceChildren();const now=today(),arr=[];
  for(let offset=0;offset<=1;offset++){
   const dt=new Date(now.getFullYear(),now.getMonth()+offset,1);
   for(const row of monthRows(dt.getFullYear(),dt.getMonth())){
@@ -600,7 +600,7 @@ body{background:radial-gradient(ellipse at 90% -8%,rgba(19,84,75,.25),transparen
  }
 }
  function renderForecast(){
- const root=$("forecast");root.replaceChildren(),now=today(),rows=[];
+ const root=$("forecast");root.replaceChildren();const now=today(),rows=[];
  for(let i=0;i<6;i++){
   const d=new Date(now.getFullYear(),now.getMonth()+i,1),all=monthRows(d.getFullYear(),d.getMonth());
   rows.push({d,planned:sumRequired(all),unmarked:sumRequired(all.filter(r=>!data.paid[r.key]))});
